@@ -37,6 +37,10 @@ using UnitTest.Issues.TestProtos;
 using Google.Protobuf.WellKnownTypes;
 using Google.Protobuf.Reflection;
 
+using static Google.Protobuf.JsonParserTest; // For WrapInQuotes
+using System.IO;
+using Google.Protobuf.Collections;
+
 namespace Google.Protobuf
 {
     /// <summary>
@@ -63,6 +67,18 @@ namespace Google.Protobuf
         }
 
         [Test]
+        public void EnumAllowAlias()
+        {
+            var message = new TestEnumAllowAlias
+            {
+                Value = TestEnumWithDupValue.Foo2,
+            };
+            var actualText = JsonFormatter.Default.Format(message);
+            var expectedText = "{ 'value': 'FOO1' }";
+            AssertJson(expectedText, actualText);
+        }
+
+        [Test]
         public void AllSingleFields()
         {
             var message = new TestAllTypes
@@ -73,13 +89,13 @@ namespace Google.Protobuf
                 SingleFixed32 = 23,
                 SingleFixed64 = 1234567890123,
                 SingleFloat = 12.25f,
-                SingleForeignEnum = ForeignEnum.FOREIGN_BAR,
+                SingleForeignEnum = ForeignEnum.ForeignBar,
                 SingleForeignMessage = new ForeignMessage { C = 10 },
-                SingleImportEnum = ImportEnum.IMPORT_BAZ,
+                SingleImportEnum = ImportEnum.ImportBaz,
                 SingleImportMessage = new ImportMessage { D = 20 },
                 SingleInt32 = 100,
                 SingleInt64 = 3210987654321,
-                SingleNestedEnum = TestAllTypes.Types.NestedEnum.FOO,
+                SingleNestedEnum = TestAllTypes.Types.NestedEnum.Foo,
                 SingleNestedMessage = new TestAllTypes.Types.NestedMessage { Bb = 35 },
                 SinglePublicImportMessage = new PublicImportMessage { E = 54 },
                 SingleSfixed32 = -123,
@@ -163,41 +179,31 @@ namespace Google.Protobuf
         }
 
         [Test]
-        public void UnknownEnumValueOmitted_SingleField()
+        public void UnknownEnumValueNumeric_SingleField()
         {
             var message = new TestAllTypes { SingleForeignEnum = (ForeignEnum) 100 };
-            AssertJson("{ }", JsonFormatter.Default.Format(message));
+            AssertJson("{ 'singleForeignEnum': 100 }", JsonFormatter.Default.Format(message));
         }
 
         [Test]
-        public void UnknownEnumValueOmitted_RepeatedField()
+        public void UnknownEnumValueNumeric_RepeatedField()
         {
-            var message = new TestAllTypes { RepeatedForeignEnum = { ForeignEnum.FOREIGN_BAZ, (ForeignEnum) 100, ForeignEnum.FOREIGN_FOO } };
-            AssertJson("{ 'repeatedForeignEnum': [ 'FOREIGN_BAZ', 'FOREIGN_FOO' ] }", JsonFormatter.Default.Format(message));
+            var message = new TestAllTypes { RepeatedForeignEnum = { ForeignEnum.ForeignBaz, (ForeignEnum) 100, ForeignEnum.ForeignFoo } };
+            AssertJson("{ 'repeatedForeignEnum': [ 'FOREIGN_BAZ', 100, 'FOREIGN_FOO' ] }", JsonFormatter.Default.Format(message));
         }
 
         [Test]
-        public void UnknownEnumValueOmitted_MapField()
+        public void UnknownEnumValueNumeric_MapField()
         {
-            // This matches the C++ behaviour.
-            var message = new TestMap { MapInt32Enum = { { 1, MapEnum.MAP_ENUM_FOO }, { 2, (MapEnum) 100 }, { 3, MapEnum.MAP_ENUM_BAR } } };
-            AssertJson("{ 'mapInt32Enum': { '1': 'MAP_ENUM_FOO', '3': 'MAP_ENUM_BAR' } }", JsonFormatter.Default.Format(message));
+            var message = new TestMap { MapInt32Enum = { { 1, MapEnum.Foo }, { 2, (MapEnum) 100 }, { 3, MapEnum.Bar } } };
+            AssertJson("{ 'mapInt32Enum': { '1': 'MAP_ENUM_FOO', '2': 100, '3': 'MAP_ENUM_BAR' } }", JsonFormatter.Default.Format(message));
         }
 
         [Test]
-        public void UnknownEnumValueOmitted_RepeatedField_AllEntriesUnknown()
+        public void UnknownEnumValue_RepeatedField_AllEntriesUnknown()
         {
-            // *Maybe* we should hold off on writing the "[" until we find that we've got at least one value to write...
-            // but this is what happens at the moment, and it doesn't seem too awful.
             var message = new TestAllTypes { RepeatedForeignEnum = { (ForeignEnum) 200, (ForeignEnum) 100 } };
-            AssertJson("{ 'repeatedForeignEnum': [ ] }", JsonFormatter.Default.Format(message));
-        }
-
-        [Test]
-        public void NullValueForMessage()
-        {
-            var message = new TestMap { MapInt32ForeignMessage = { { 10, null } } };
-            AssertJson("{ 'mapInt32ForeignMessage': { '10': null } }", JsonFormatter.Default.Format(message));
+            AssertJson("{ 'repeatedForeignEnum': [ 200, 100 ] }", JsonFormatter.Default.Format(message));
         }
 
         [Test]
@@ -235,10 +241,16 @@ namespace Google.Protobuf
         [Test]
         [TestCase("foo_bar", "fooBar")]
         [TestCase("bananaBanana", "bananaBanana")]
-        [TestCase("BANANABanana", "bananaBanana")]
-        public void ToCamelCase(string original, string expected)
+        [TestCase("BANANABanana", "BANANABanana")]
+        [TestCase("simple", "simple")]
+        [TestCase("ACTION_AND_ADVENTURE", "ACTIONANDADVENTURE")]
+        [TestCase("action_and_adventure", "actionAndAdventure")]
+        [TestCase("kFoo", "kFoo")]
+        [TestCase("HTTPServer", "HTTPServer")]
+        [TestCase("CLIENT", "CLIENT")]
+        public void ToJsonName(string original, string expected)
         {
-            Assert.AreEqual(expected, JsonFormatter.ToCamelCase(original));
+            Assert.AreEqual(expected, JsonFormatter.ToJsonName(original));
         }
 
         [Test]
@@ -319,24 +331,48 @@ namespace Google.Protobuf
         }
 
         [Test]
-        public void TimestampStandalone()
+        [TestCase("1970-01-01T00:00:00Z", 0)]
+        [TestCase("1970-01-01T00:00:00.000000001Z", 1)]
+        [TestCase("1970-01-01T00:00:00.000000010Z", 10)]
+        [TestCase("1970-01-01T00:00:00.000000100Z", 100)]
+        [TestCase("1970-01-01T00:00:00.000001Z", 1000)]
+        [TestCase("1970-01-01T00:00:00.000010Z", 10000)]
+        [TestCase("1970-01-01T00:00:00.000100Z", 100000)]
+        [TestCase("1970-01-01T00:00:00.001Z", 1000000)]
+        [TestCase("1970-01-01T00:00:00.010Z", 10000000)]
+        [TestCase("1970-01-01T00:00:00.100Z", 100000000)]
+        [TestCase("1970-01-01T00:00:00.120Z", 120000000)]
+        [TestCase("1970-01-01T00:00:00.123Z", 123000000)]
+        [TestCase("1970-01-01T00:00:00.123400Z", 123400000)]
+        [TestCase("1970-01-01T00:00:00.123450Z", 123450000)]
+        [TestCase("1970-01-01T00:00:00.123456Z", 123456000)]
+        [TestCase("1970-01-01T00:00:00.123456700Z", 123456700)]
+        [TestCase("1970-01-01T00:00:00.123456780Z", 123456780)]
+        [TestCase("1970-01-01T00:00:00.123456789Z", 123456789)]
+        public void TimestampStandalone(string expected, int nanos)
         {
-            Assert.AreEqual("1970-01-01T00:00:00Z", new Timestamp().ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.100Z", new Timestamp { Nanos = 100000000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.120Z", new Timestamp { Nanos = 120000000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123Z", new Timestamp { Nanos = 123000000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123400Z", new Timestamp { Nanos = 123400000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123450Z", new Timestamp { Nanos = 123450000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123456Z", new Timestamp { Nanos = 123456000 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123456700Z", new Timestamp { Nanos = 123456700 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123456780Z", new Timestamp { Nanos = 123456780 }.ToString());
-            Assert.AreEqual("1970-01-01T00:00:00.123456789Z", new Timestamp { Nanos = 123456789 }.ToString());
+            Assert.AreEqual(WrapInQuotes(expected), new Timestamp { Nanos = nanos }.ToString());
+        }
 
-            // One before and one after the Unix epoch
-            Assert.AreEqual("1673-06-19T12:34:56Z",
+        [Test]
+        public void TimestampStandalone_FromDateTime()
+        {
+            // One before and one after the Unix epoch, more easily represented via DateTime.
+            Assert.AreEqual("\"1673-06-19T12:34:56Z\"",
                 new DateTime(1673, 6, 19, 12, 34, 56, DateTimeKind.Utc).ToTimestamp().ToString());
-            Assert.AreEqual("2015-07-31T10:29:34Z",
+            Assert.AreEqual("\"2015-07-31T10:29:34Z\"",
                 new DateTime(2015, 7, 31, 10, 29, 34, DateTimeKind.Utc).ToTimestamp().ToString());
+        }
+
+        [Test]
+        [TestCase(-1, -1)] // Would be valid as duration
+        [TestCase(1, Timestamp.MaxNanos + 1)]
+        [TestCase(Timestamp.UnixSecondsAtBclMaxValue + 1, 0)]
+        [TestCase(Timestamp.UnixSecondsAtBclMinValue - 1, 0)]
+        public void TimestampStandalone_NonNormalized(long seconds, int nanoseconds)
+        {
+            var timestamp = new Timestamp { Seconds = seconds, Nanos = nanoseconds };
+            Assert.Throws<InvalidOperationException>(() => JsonFormatter.Default.Format(timestamp));
         }
 
         [Test]
@@ -350,6 +386,14 @@ namespace Google.Protobuf
         [TestCase(0, 0, "0s")]
         [TestCase(1, 0, "1s")]
         [TestCase(-1, 0, "-1s")]
+        [TestCase(0, 1, "0.000000001s")]
+        [TestCase(0, 10, "0.000000010s")]
+        [TestCase(0, 100, "0.000000100s")]
+        [TestCase(0, 1000, "0.000001s")]
+        [TestCase(0, 10000, "0.000010s")]
+        [TestCase(0, 100000, "0.000100s")]
+        [TestCase(0, 1000000, "0.001s")]
+        [TestCase(0, 10000000, "0.010s")]
         [TestCase(0, 100000000, "0.100s")]
         [TestCase(0, 120000000, "0.120s")]
         [TestCase(0, 123000000, "0.123s")]
@@ -362,12 +406,19 @@ namespace Google.Protobuf
         [TestCase(0, -100000000, "-0.100s")]
         [TestCase(1, 100000000, "1.100s")]
         [TestCase(-1, -100000000, "-1.100s")]
-        // Non-normalized examples
-        [TestCase(1, 2123456789, "3.123456789s")]
-        [TestCase(1, -100000000, "0.900s")]
         public void DurationStandalone(long seconds, int nanoseconds, string expected)
         {
-            Assert.AreEqual(expected, new Duration { Seconds = seconds, Nanos = nanoseconds }.ToString());
+            var json = JsonFormatter.Default.Format(new Duration { Seconds = seconds, Nanos = nanoseconds });
+            Assert.AreEqual(WrapInQuotes(expected), json);
+        }
+
+        [Test]
+        [TestCase(1, 2123456789)]
+        [TestCase(1, -100000000)]
+        public void DurationStandalone_NonNormalized(long seconds, int nanoseconds)
+        {
+            var duration = new Duration { Seconds = seconds, Nanos = nanoseconds };
+            Assert.Throws<InvalidOperationException>(() => JsonFormatter.Default.Format(duration));
         }
 
         [Test]
@@ -396,14 +447,24 @@ namespace Google.Protobuf
         }
 
         [Test]
+        [TestCase("foo__bar")]
+        [TestCase("foo_3_ar")]
+        [TestCase("fooBar")]
+        public void FieldMaskInvalid(string input)
+        {
+            var mask = new FieldMask { Paths = { input } };
+            Assert.Throws<InvalidOperationException>(() => JsonFormatter.Default.Format(mask));
+        }
+
+        [Test]
         public void FieldMaskStandalone()
         {
             var fieldMask = new FieldMask { Paths = { "", "single", "with_underscore", "nested.field.name", "nested..double_dot" } };
-            Assert.AreEqual(",single,withUnderscore,nested.field.name,nested..doubleDot", fieldMask.ToString());
+            Assert.AreEqual("\",single,withUnderscore,nested.field.name,nested..doubleDot\"", fieldMask.ToString());
 
             // Invalid, but we shouldn't create broken JSON...
             fieldMask = new FieldMask { Paths = { "x\\y" } };
-            Assert.AreEqual(@"x\\y", fieldMask.ToString());
+            Assert.AreEqual(@"""x\\y""", fieldMask.ToString());
         }
 
         [Test]
@@ -440,6 +501,15 @@ namespace Google.Protobuf
         }
 
         [Test]
+        public void AnyMessageType_CustomPrefix()
+        {
+            var formatter = new JsonFormatter(new JsonFormatter.Settings(false, TypeRegistry.FromMessages(TestAllTypes.Descriptor)));
+            var message = new TestAllTypes { SingleInt32 = 10 };
+            var any = Any.Pack(message, "foo.bar/baz");
+            AssertJson("{ '@type': 'foo.bar/baz/protobuf_unittest.TestAllTypes', 'singleInt32': 10 }", formatter.Format(any));
+        }
+
+        [Test]
         public void AnyNested()
         {
             var registry = TypeRegistry.FromMessages(TestWellKnownTypes.Descriptor, TestAllTypes.Descriptor);
@@ -460,6 +530,67 @@ namespace Google.Protobuf
             var message = new TestAllTypes();
             var any = Any.Pack(message);
             Assert.Throws<InvalidOperationException>(() => JsonFormatter.Default.Format(any));
+        }
+
+        [Test]
+        [TestCase(typeof(BoolValue), true, "true")]
+        [TestCase(typeof(Int32Value), 32, "32")]
+        [TestCase(typeof(Int64Value), 32L, "\"32\"")]
+        [TestCase(typeof(UInt32Value), 32U, "32")]
+        [TestCase(typeof(UInt64Value), 32UL, "\"32\"")]
+        [TestCase(typeof(StringValue), "foo", "\"foo\"")]
+        [TestCase(typeof(FloatValue), 1.5f, "1.5")]
+        [TestCase(typeof(DoubleValue), 1.5d, "1.5")]
+        public void Wrappers_Standalone(System.Type wrapperType, object value, string expectedJson)
+        {
+            IMessage populated = (IMessage)Activator.CreateInstance(wrapperType);
+            populated.Descriptor.Fields[WrappersReflection.WrapperValueFieldNumber].Accessor.SetValue(populated, value);
+            Assert.AreEqual(expectedJson, JsonFormatter.Default.Format(populated));
+        }
+
+        // Sanity tests for WriteValue. Not particularly comprehensive, as it's all covered above already,
+        // as FormatMessage uses WriteValue.
+
+        [TestCase(null, "null")]
+        [TestCase(1, "1")]
+        [TestCase(1L, "'1'")]
+        [TestCase(0.5f, "0.5")]
+        [TestCase(0.5d, "0.5")]
+        [TestCase("text", "'text'")]
+        [TestCase("x\ny", @"'x\ny'")]
+        [TestCase(ForeignEnum.ForeignBar, "'FOREIGN_BAR'")]
+        public void WriteValue_Constant(object value, string expectedJson)
+        {
+            AssertWriteValue(value, expectedJson);
+        }
+
+        [Test]
+        public void WriteValue_Timestamp()
+        {
+            var value = new DateTime(1673, 6, 19, 12, 34, 56, DateTimeKind.Utc).ToTimestamp();
+            AssertWriteValue(value, "'1673-06-19T12:34:56Z'");
+        }
+
+        [Test]
+        public void WriteValue_Message()
+        {
+            var value = new TestAllTypes { SingleInt32 = 100, SingleInt64 = 3210987654321L };
+            AssertWriteValue(value, "{ 'singleInt32': 100, 'singleInt64': '3210987654321' }");
+        }
+
+        [Test]
+        public void WriteValue_List()
+        {
+            var value = new RepeatedField<int> { 1, 2, 3 };
+            AssertWriteValue(value, "[ 1, 2, 3 ]");
+        }
+
+        private static void AssertWriteValue(object value, string expectedJson)
+        {
+            var writer = new StringWriter();
+            JsonFormatter.Default.WriteValue(writer, value);
+            string actual = writer.ToString();
+            AssertJson(expectedJson, actual);
         }
 
         /// <summary>

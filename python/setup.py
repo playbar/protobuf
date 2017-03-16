@@ -5,6 +5,7 @@ import glob
 import os
 import subprocess
 import sys
+import platform
 
 # We must use setuptools, not distutils, because we need to use the
 # namespace_packages option for the "google" package.
@@ -76,7 +77,9 @@ def generate_proto(source, require = True):
       sys.exit(-1)
 
 def GenerateUnittestProtos():
+  generate_proto("../src/google/protobuf/any_test.proto", False)
   generate_proto("../src/google/protobuf/map_unittest.proto", False)
+  generate_proto("../src/google/protobuf/test_messages_proto3.proto", False)
   generate_proto("../src/google/protobuf/unittest_arena.proto", False)
   generate_proto("../src/google/protobuf/unittest_no_arena.proto", False)
   generate_proto("../src/google/protobuf/unittest_no_arena_import.proto", False)
@@ -89,10 +92,12 @@ def GenerateUnittestProtos():
   generate_proto("../src/google/protobuf/unittest_no_generic_services.proto", False)
   generate_proto("../src/google/protobuf/unittest_proto3_arena.proto", False)
   generate_proto("../src/google/protobuf/util/json_format_proto3.proto", False)
+  generate_proto("google/protobuf/internal/any_test.proto", False)
   generate_proto("google/protobuf/internal/descriptor_pool_test1.proto", False)
   generate_proto("google/protobuf/internal/descriptor_pool_test2.proto", False)
   generate_proto("google/protobuf/internal/factory_test1.proto", False)
   generate_proto("google/protobuf/internal/factory_test2.proto", False)
+  generate_proto("google/protobuf/internal/file_options_test.proto", False)
   generate_proto("google/protobuf/internal/import_test_package/inner.proto", False)
   generate_proto("google/protobuf/internal/import_test_package/outer.proto", False)
   generate_proto("google/protobuf/internal/missing_enum_values.proto", False)
@@ -113,7 +118,8 @@ class clean(_clean):
         filepath = os.path.join(dirpath, filename)
         if filepath.endswith("_pb2.py") or filepath.endswith(".pyc") or \
           filepath.endswith(".so") or filepath.endswith(".o") or \
-          filepath.endswith('google/protobuf/compiler/__init__.py'):
+          filepath.endswith('google/protobuf/compiler/__init__.py') or \
+          filepath.endswith('google/protobuf/util/__init__.py'):
           os.remove(filepath)
     # _clean is an old-style class, so super() doesn't work.
     _clean.run(self)
@@ -136,7 +142,7 @@ class build_py(_build_py):
     GenerateUnittestProtos()
 
     # Make sure google.protobuf/** are valid packages.
-    for path in ['', 'internal/', 'compiler/', 'pyext/']:
+    for path in ['', 'internal/', 'compiler/', 'pyext/', 'util/']:
       try:
         open('google/protobuf/%s__init__.py' % path, 'a').close()
       except EnvironmentError:
@@ -147,41 +153,74 @@ class build_py(_build_py):
 class test_conformance(_build_py):
   target = 'test_python'
   def run(self):
+    if sys.version_info >= (2, 7):
+      # Python 2.6 dodges these extra failures.
+      os.environ["CONFORMANCE_PYTHON_EXTRA_FAILURES"] = (
+          "--failure_list failure_list_python-post26.txt")
     cmd = 'cd ../conformance && make %s' % (test_conformance.target)
     status = subprocess.check_call(cmd, shell=True)
 
 
+def get_option_from_sys_argv(option_str):
+  if option_str in sys.argv:
+    sys.argv.remove(option_str)
+    return True
+  return False
+
+
 if __name__ == '__main__':
   ext_module_list = []
-  cpp_impl = '--cpp_implementation'
   warnings_as_errors = '--warnings_as_errors'
-  if cpp_impl in sys.argv:
-    sys.argv.remove(cpp_impl)
-    extra_compile_args = ['-Wno-write-strings', '-Wno-invalid-offsetof']
+  if get_option_from_sys_argv('--cpp_implementation'):
+    # Link libprotobuf.a and libprotobuf-lite.a statically with the
+    # extension. Note that those libraries have to be compiled with
+    # -fPIC for this to work.
+    compile_static_ext = get_option_from_sys_argv('--compile_static_extension')
+    extra_compile_args = ['-Wno-write-strings',
+                          '-Wno-invalid-offsetof',
+                          '-Wno-sign-compare']
+    libraries = ['protobuf']
+    extra_objects = None
+    if compile_static_ext:
+      libraries = None
+      extra_objects = ['../src/.libs/libprotobuf.a',
+                       '../src/.libs/libprotobuf-lite.a']
     test_conformance.target = 'test_python_cpp'
 
-    if "clang" in os.popen('$CC --version').read():
+    if "clang" in os.popen('$CC --version 2> /dev/null').read():
       extra_compile_args.append('-Wno-shorten-64-to-32')
+
+    v, _, _ = platform.mac_ver()
+    if v:
+      v = float('.'.join(v.split('.')[:2]))
+      if v >= 10.12:
+        extra_compile_args.append('-std=c++11')
 
     if warnings_as_errors in sys.argv:
       extra_compile_args.append('-Werror')
       sys.argv.remove(warnings_as_errors)
 
     # C++ implementation extension
-    ext_module_list.append(
+    ext_module_list.extend([
         Extension(
             "google.protobuf.pyext._message",
             glob.glob('google/protobuf/pyext/*.cc'),
             include_dirs=[".", "../src"],
-            libraries=['protobuf'],
+            libraries=libraries,
+            extra_objects=extra_objects,
             library_dirs=['../src/.libs'],
             extra_compile_args=extra_compile_args,
-        )
-    )
+        ),
+        Extension(
+            "google.protobuf.internal._api_implementation",
+            glob.glob('google/protobuf/internal/api_implementation.cc'),
+            extra_compile_args=['-DPYTHON_PROTO2_CPP_IMPL_V2'],
+        ),
+    ])
     os.environ['PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION'] = 'cpp'
 
   # Keep this list of dependencies in sync with tox.ini.
-  install_requires = ['six', 'setuptools']
+  install_requires = ['six>=1.9', 'setuptools']
   if sys.version_info <= (2,7):
     install_requires.append('ordereddict')
     install_requires.append('unittest2')
@@ -190,11 +229,12 @@ if __name__ == '__main__':
       name='protobuf',
       version=GetVersion(),
       description='Protocol Buffers',
+      download_url='https://github.com/google/protobuf/releases',
       long_description="Protocol Buffers are Google's data interchange format",
       url='https://developers.google.com/protocol-buffers/',
       maintainer='protobuf@googlegroups.com',
       maintainer_email='protobuf@googlegroups.com',
-      license='New BSD License',
+      license='3-Clause BSD License',
       classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",

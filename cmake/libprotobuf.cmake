@@ -40,6 +40,7 @@ set(libprotobuf_files
   ${protobuf_source_dir}/src/google/protobuf/util/internal/json_objectwriter.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/json_stream_parser.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/object_writer.cc
+  ${protobuf_source_dir}/src/google/protobuf/util/internal/proto_writer.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/protostream_objectsource.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/protostream_objectwriter.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/type_info.cc
@@ -55,7 +56,10 @@ set(libprotobuf_files
 
 add_library(libprotobuf ${protobuf_SHARED_OR_STATIC}
   ${libprotobuf_lite_files} ${libprotobuf_files})
-target_link_libraries(libprotobuf ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES})
+target_link_libraries(libprotobuf ${CMAKE_THREAD_LIBS_INIT})
+if(protobuf_WITH_ZLIB)
+    target_link_libraries(libprotobuf ${ZLIB_LIBRARIES})
+endif()
 target_include_directories(libprotobuf PUBLIC ${protobuf_source_dir}/src)
 if(MSVC AND protobuf_BUILD_SHARED_LIBS)
   target_compile_definitions(libprotobuf

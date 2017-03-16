@@ -186,7 +186,7 @@ bool ReadCodePoint(StringPiece str, int index,
                    uint32 *cp, int* num_left, int *num_read) {
   if (*num_left == 0) {
     // Last read was complete. Start reading a new unicode code point.
-    *cp = str[index++];
+    *cp = static_cast<uint8>(str[index++]);
     *num_read = 1;
     // The length of the code point is determined from reading the first byte.
     //
@@ -235,7 +235,7 @@ bool ReadCodePoint(StringPiece str, int index,
     *num_read = 0;
   }
   while (*num_left > 0 && index < str.size()) {
-    uint32 ch = str[index++];
+    uint32 ch = static_cast<uint8>(str[index++]);
     --(*num_left);
     ++(*num_read);
     *cp = (*cp << 6) | (ch & 0x3f);
@@ -255,7 +255,7 @@ StringPiece ToHex(uint16 cp, char* buffer) {
   buffer[3] = kHex[cp & 0x0f];
   cp >>= 4;
   buffer[2] = kHex[cp & 0x0f];
-  return StringPiece(buffer, 0, 6);
+  return StringPiece(buffer).substr(0, 6);
 }
 
 // Stores the 32-bit unicode code point as its hexadecimal digits in buffer
@@ -336,19 +336,19 @@ StringPiece EscapeCodePoint(uint32 cp, char* buffer, bool force_output) {
     cp >>= 6;
     if (cp <= 0x1f) {
       buffer[4] = cp | 0xc0;
-      sp.set(buffer + 4, 2);
+      sp = StringPiece(buffer + 4, 2);
       return sp;
     }
     buffer[4] = (cp & 0x3f) | 0x80;
     cp >>= 6;
     if (cp <= 0x0f) {
       buffer[3] = cp | 0xe0;
-      sp.set(buffer + 3, 3);
+      sp = StringPiece(buffer + 3, 3);
       return sp;
     }
     buffer[3] = (cp & 0x3f) | 0x80;
     buffer[2] = ((cp >> 6) & 0x07) | 0xf0;
-    sp.set(buffer + 2, 4);
+    sp = StringPiece(buffer + 2, 4);
   }
   return sp;
 }

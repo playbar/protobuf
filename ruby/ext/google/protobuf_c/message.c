@@ -151,33 +151,70 @@ VALUE Message_method_missing(int argc, VALUE* argv, VALUE _self) {
     name_len--;
   }
 
-  // Check for a oneof name first.
-  o = upb_msgdef_ntoo(self->descriptor->msgdef,
-                                          name, name_len);
+  // See if this name corresponds to either a oneof or field in this message.
+  if (!upb_msgdef_lookupname(self->descriptor->msgdef, name, name_len, &f,
+                             &o)) {
+    return rb_call_super(argc, argv);
+  }
+
   if (o != NULL) {
+    // This is a oneof -- return which field inside the oneof is set.
     if (setter) {
       rb_raise(rb_eRuntimeError, "Oneof accessors are read-only.");
     }
     return which_oneof_field(self, o);
-  }
-
-  // Otherwise, check for a field with that name.
-  f = upb_msgdef_ntof(self->descriptor->msgdef,
-                                          name, name_len);
-
-  if (f == NULL) {
-    rb_raise(rb_eArgError, "Unknown field");
-  }
-
-  if (setter) {
-    if (argc < 2) {
-      rb_raise(rb_eArgError, "No value provided to setter.");
-    }
-    layout_set(self->descriptor->layout, Message_data(self), f, argv[1]);
-    return Qnil;
   } else {
-    return layout_get(self->descriptor->layout, Message_data(self), f);
+    // This is a field -- get or set the field's value.
+    assert(f);
+    if (setter) {
+      if (argc < 2) {
+        rb_raise(rb_eArgError, "No value provided to setter.");
+      }
+      layout_set(self->descriptor->layout, Message_data(self), f, argv[1]);
+      return Qnil;
+    } else {
+      return layout_get(self->descriptor->layout, Message_data(self), f);
+    }
   }
+}
+
+VALUE Message_respond_to_missing(int argc, VALUE* argv, VALUE _self) {
+  MessageHeader* self;
+  VALUE method_name, method_str;
+  char* name;
+  size_t name_len;
+  bool setter;
+  const upb_oneofdef* o;
+  const upb_fielddef* f;
+
+  TypedData_Get_Struct(_self, MessageHeader, &Message_type, self);
+  if (argc < 1) {
+    rb_raise(rb_eArgError, "Expected method name as first argument.");
+  }
+  method_name = argv[0];
+  if (!SYMBOL_P(method_name)) {
+    rb_raise(rb_eArgError, "Expected symbol as method name.");
+  }
+  method_str = rb_id2str(SYM2ID(method_name));
+  name = RSTRING_PTR(method_str);
+  name_len = RSTRING_LEN(method_str);
+  setter = false;
+
+  // Setters have names that end in '='.
+  if (name[name_len - 1] == '=') {
+    setter = true;
+    name_len--;
+  }
+
+  // See if this name corresponds to either a oneof or field in this message.
+  if (!upb_msgdef_lookupname(self->descriptor->msgdef, name, name_len, &f,
+                             &o)) {
+    return rb_call_super(argc, argv);
+  }
+  if (o != NULL) {
+    return setter ? Qfalse : Qtrue;
+  }
+  return Qtrue;
 }
 
 int Message_initialize_kwarg(VALUE key, VALUE val, VALUE _self) {
@@ -197,7 +234,7 @@ int Message_initialize_kwarg(VALUE key, VALUE val, VALUE _self) {
   f = upb_msgdef_ntofz(self->descriptor->msgdef, name);
   if (f == NULL) {
     rb_raise(rb_eArgError,
-             "Unknown field name in initialization map entry.");
+             "Unknown field name '%s' in initialization map entry.", name);
   }
 
   if (is_map_field(f)) {
@@ -205,7 +242,7 @@ int Message_initialize_kwarg(VALUE key, VALUE val, VALUE _self) {
 
     if (TYPE(val) != T_HASH) {
       rb_raise(rb_eArgError,
-               "Expected Hash object as initializer value for map field.");
+               "Expected Hash object as initializer value for map field '%s'.", name);
     }
     map = layout_get(self->descriptor->layout, Message_data(self), f);
     Map_merge_into_self(map, val);
@@ -214,7 +251,7 @@ int Message_initialize_kwarg(VALUE key, VALUE val, VALUE _self) {
 
     if (TYPE(val) != T_ARRAY) {
       rb_raise(rb_eArgError,
-               "Expected array as initializer value for repeated field.");
+               "Expected array as initializer value for repeated field '%s'.", name);
     }
     ary = layout_get(self->descriptor->layout, Message_data(self), f);
     for (int i = 0; i < RARRAY_LEN(val); i++) {
@@ -307,6 +344,9 @@ VALUE Message_deep_copy(VALUE _self) {
 VALUE Message_eq(VALUE _self, VALUE _other) {
   MessageHeader* self;
   MessageHeader* other;
+  if (TYPE(_self) != TYPE(_other)) {
+    return Qfalse;
+  }
   TypedData_Get_Struct(_self, MessageHeader, &Message_type, self);
   TypedData_Get_Struct(_other, MessageHeader, &Message_type, other);
 
@@ -461,6 +501,8 @@ VALUE build_class_from_descriptor(Descriptor* desc) {
 
   rb_define_method(klass, "method_missing",
                    Message_method_missing, -1);
+  rb_define_method(klass, "respond_to_missing?",
+                   Message_respond_to_missing, -1);
   rb_define_method(klass, "initialize", Message_initialize, -1);
   rb_define_method(klass, "dup", Message_dup, 0);
   // Also define #clone so that we don't inherit Object#clone.
@@ -475,7 +517,7 @@ VALUE build_class_from_descriptor(Descriptor* desc) {
   rb_define_singleton_method(klass, "decode", Message_decode, 1);
   rb_define_singleton_method(klass, "encode", Message_encode, 1);
   rb_define_singleton_method(klass, "decode_json", Message_decode_json, 1);
-  rb_define_singleton_method(klass, "encode_json", Message_encode_json, 1);
+  rb_define_singleton_method(klass, "encode_json", Message_encode_json, -1);
   rb_define_singleton_method(klass, "descriptor", Message_descriptor, 0);
 
   return klass;

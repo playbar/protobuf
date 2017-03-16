@@ -28,6 +28,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// This file defines an Arena allocator for better allocation performance.
+
 #ifndef GOOGLE_PROTOBUF_ARENA_H__
 #define GOOGLE_PROTOBUF_ARENA_H__
 
@@ -56,6 +58,7 @@ using type_info = ::type_info;
 #include <google/protobuf/stubs/mutex.h>
 #include <google/protobuf/stubs/type_traits.h>
 
+
 namespace google {
 namespace protobuf {
 
@@ -77,7 +80,12 @@ template<typename T> void arena_delete_object(void* object) {
   delete reinterpret_cast<T*>(object);
 }
 inline void arena_free(void* object, size_t size) {
-  free(object);
+#if defined(__GXX_DELETE_WITH_SIZE__) || defined(__cpp_sized_deallocation)
+  ::operator delete(object, size);
+#else
+  (void)size;
+  ::operator delete(object);
+#endif
 }
 
 }  // namespace internal
@@ -141,7 +149,7 @@ struct ArenaOptions {
         max_block_size(kDefaultMaxBlockSize),
         initial_block(NULL),
         initial_block_size(0),
-        block_alloc(&malloc),
+        block_alloc(&::operator new),
         block_dealloc(&internal::arena_free),
         on_arena_init(NULL),
         on_arena_reset(NULL),
@@ -210,6 +218,9 @@ struct ArenaOptions {
 //
 // This protocol is implemented by all arena-enabled proto2 message classes as
 // well as RepeatedPtrField.
+//
+// Do NOT subclass Arena. This class will be marked as final when C++11 is
+// enabled.
 class LIBPROTOBUF_EXPORT Arena {
  public:
   // Arena constructor taking custom options. See ArenaOptions below for
@@ -311,6 +322,17 @@ class LIBPROTOBUF_EXPORT Arena {
                                       arg);
     }
   }
+#if LANG_CXX11
+  template <typename T, typename Arg> GOOGLE_ATTRIBUTE_ALWAYS_INLINE
+  static T* Create(::google::protobuf::Arena* arena, Arg&& arg) {
+    if (arena == NULL) {
+      return new T(std::move(arg));
+    } else {
+      return arena->CreateInternal<T>(google::protobuf::internal::has_trivial_destructor<T>::value,
+                                      std::move(arg));
+    }
+  }
+#endif
 
   // Version of the above with two constructor arguments for the created object.
   template <typename T, typename Arg1, typename Arg2> GOOGLE_ATTRIBUTE_ALWAYS_INLINE
@@ -438,13 +460,20 @@ class LIBPROTOBUF_EXPORT Arena {
     }
   }
 
-  // Returns the total space used by the arena, which is the sums of the sizes
-  // of the underlying blocks. The total space used may not include the new
-  // blocks that are allocated by this arena from other threads concurrently
-  // with the call to this method.
-  GOOGLE_ATTRIBUTE_NOINLINE uint64 SpaceAllocated() const;
-  // As above, but does not include any free space in underlying blocks.
+  // Returns the total space allocated by the arena, which is the sum of the
+  // sizes of the underlying blocks. This method is relatively fast; a counter
+  // is kept as blocks are allocated.
+  uint64 SpaceAllocated() const;
+  // Returns the total space used by the arena. Similar to SpaceAllocated but
+  // does not include free space and block overhead. The total space returned
+  // may not include space used by other threads executing concurrently with
+  // the call to this method.
   GOOGLE_ATTRIBUTE_NOINLINE uint64 SpaceUsed() const;
+  // DEPRECATED. Please use SpaceAllocated() and SpaceUsed().
+  //
+  // Combines SpaceAllocated and SpaceUsed. Returns a pair of
+  // <space_allocated, space_used>.
+  GOOGLE_ATTRIBUTE_NOINLINE std::pair<uint64, uint64> SpaceAllocatedAndUsed() const;
 
   // Frees all storage allocated by this arena after calling destructors
   // registered with OwnDestructor() and freeing objects registered with Own().
@@ -507,11 +536,11 @@ class LIBPROTOBUF_EXPORT Arena {
   //
   // This is inside Arena because only Arena has the friend relationships
   // necessary to see the underlying generated code traits.
-  template<typename T>
-  struct is_arena_constructable :
-      public google::protobuf::internal::integral_constant<bool,
-          sizeof(InternalIsArenaConstructableHelper::ArenaConstructable<
-                 const T>(static_cast<const T*>(0))) == sizeof(char)> {
+  template <typename T>
+  struct is_arena_constructable
+      : public google::protobuf::internal::integral_constant<
+            bool, sizeof(InternalIsArenaConstructableHelper::ArenaConstructable<
+                         const T>(static_cast<const T*>(0))) == sizeof(char)> {
   };
 
  private:
@@ -591,15 +620,14 @@ class LIBPROTOBUF_EXPORT Arena {
   // This is inside Arena because only Arena has the friend relationships
   // necessary to see the underlying generated code traits.
   template<typename T>
-  struct is_destructor_skippable :
-      public google::protobuf::internal::integral_constant<bool,
-              sizeof(InternalIsDestructorSkippableHelper::DestructorSkippable<
-                     const T>(static_cast<const T*>(0))) ==
-              sizeof(char) ||
-              google::protobuf::internal::has_trivial_destructor<T>::value> {
-  };
+  struct is_destructor_skippable
+      : public google::protobuf::internal::integral_constant<
+            bool,
+            sizeof(InternalIsDestructorSkippableHelper::DestructorSkippable<
+                   const T>(static_cast<const T*>(0))) == sizeof(char) ||
+                google::protobuf::internal::has_trivial_destructor<T>::value> {};
 
-
+ private:
   // CreateMessage<T> requires that T supports arenas, but this private method
   // works whether or not T supports arenas. These are not exposed to user code
   // as it can cause confusing API usages, and end up having double free in
@@ -644,6 +672,18 @@ class LIBPROTOBUF_EXPORT Arena {
     }
     return t;
   }
+
+#if LANG_CXX11
+  template <typename T, typename Arg> GOOGLE_ATTRIBUTE_ALWAYS_INLINE
+  T* CreateInternal(bool skip_explicit_ownership, Arg&& arg) {
+    T* t = new (AllocateAligned(RTTI_TYPE_ID(T), sizeof(T))) T(
+        std::move(arg));
+    if (!skip_explicit_ownership) {
+      AddListNode(t, &internal::arena_destruct_object<T>);
+    }
+    return t;
+  }
+#endif
 
   template <typename T, typename Arg1, typename Arg2> GOOGLE_ATTRIBUTE_ALWAYS_INLINE
   T* CreateInternal(
@@ -793,7 +833,7 @@ class LIBPROTOBUF_EXPORT Arena {
   template <typename T>
   static void CreateInArenaStorageInternal(
       T* ptr, Arena* arena, google::protobuf::internal::false_type) {
-    new (ptr) T;
+    new (ptr) T();
   }
 
   template <typename T>
@@ -870,8 +910,9 @@ class LIBPROTOBUF_EXPORT Arena {
 
   int64 lifecycle_id_;  // Unique for each arena. Changes on Reset().
 
-  google::protobuf::internal::AtomicWord blocks_;  // Head of linked list of all allocated blocks
-  google::protobuf::internal::AtomicWord hint_;    // Fast thread-local block access
+  google::protobuf::internal::AtomicWord blocks_;       // Head of linked list of all allocated blocks
+  google::protobuf::internal::AtomicWord hint_;         // Fast thread-local block access
+  uint64 space_allocated_;  // Sum of sizes of all allocated blocks.
 
   // Node contains the ptr of the object to be cleaned up and the associated
   // cleanup function ptr.
@@ -885,7 +926,7 @@ class LIBPROTOBUF_EXPORT Arena {
                              // ptrs and cleanup methods.
 
   bool owns_first_block_;    // Indicates that arena owns the first block
-  Mutex blocks_lock_;
+  mutable Mutex blocks_lock_;
 
   void AddBlock(Block* b);
   // Access must be synchronized, either by blocks_lock_ or by being called from

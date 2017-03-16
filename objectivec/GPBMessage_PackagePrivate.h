@@ -62,16 +62,21 @@ typedef struct GPBMessage_Storage *GPBMessage_StoragePtr;
   // by *read* operations such as getters (autocreation of message fields and
   // message extensions, not setting of values). Used to guarantee thread safety
   // for concurrent reads on the message.
-  OSSpinLock readOnlyMutex_;
+  // NOTE: OSSpinLock may seem like a good fit here but Apple engineers have
+  // pointed out that they are vulnerable to live locking on iOS in cases of
+  // priority inversion:
+  //   http://mjtsai.com/blog/2015/12/16/osspinlock-is-unsafe/
+  //   https://lists.swift.org/pipermail/swift-dev/Week-of-Mon-20151214/000372.html
+  // Use of readOnlySemaphore_ must be prefaced by a call to
+  // GPBPrepareReadOnlySemaphore to ensure it has been created. This allows
+  // readOnlySemaphore_ to be only created when actually needed.
+  dispatch_once_t readOnlySemaphoreCreationOnce_;
+  dispatch_semaphore_t readOnlySemaphore_;
 }
 
 // Gets an extension value without autocreating the result if not found. (i.e.
 // returns nil if the extension is not set)
 - (id)getExistingExtension:(GPBExtensionDescriptor *)extension;
-
-// Returns an array of GPBExtensionDescriptor* for all the extensions currently
-// in use on the message.  They are sorted by field number.
-- (NSArray *)sortedExtensionsInUse;
 
 // Parses a message of this type from the input and merges it with this
 // message.
@@ -97,6 +102,25 @@ typedef struct GPBMessage_Storage *GPBMessage_StoragePtr;
 @end
 
 CF_EXTERN_C_BEGIN
+
+
+// Call this before using the readOnlySemaphore_. This ensures it is created only once.
+NS_INLINE void GPBPrepareReadOnlySemaphore(GPBMessage *self) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdirect-ivar-access"
+
+// Starting on Xcode 8.3, the static analyzer complains that the dispatch_once_t
+// variable passed to dispatch_once should not be allocated on the heap or
+// stack. Given that the semaphore is also an instance variable of the message,
+// both variables are cleared at the same time, so this is safe.
+#if !defined(__clang_analyzer__)
+  dispatch_once(&self->readOnlySemaphoreCreationOnce_, ^{
+    self->readOnlySemaphore_ = dispatch_semaphore_create(1);
+  });
+#endif  // !defined(__clang_analyzer__)
+
+#pragma clang diagnostic pop
+}
 
 // Returns a new instance that was automatically created by |autocreator| for
 // its field |field|.

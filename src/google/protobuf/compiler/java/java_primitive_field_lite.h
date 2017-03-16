@@ -69,7 +69,7 @@ class ImmutablePrimitiveFieldLiteGenerator
   void GenerateBuilderMembers(io::Printer* printer) const;
   void GenerateInitializationCode(io::Printer* printer) const;
   void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
+  void GenerateVisitCode(io::Printer* printer) const;
   void GenerateBuildingCode(io::Printer* printer) const;
   void GenerateDynamicMethodMakeImmutableCode(io::Printer* printer) const;
   void GenerateParsingCode(io::Printer* printer) const;
@@ -84,7 +84,7 @@ class ImmutablePrimitiveFieldLiteGenerator
 
  protected:
   const FieldDescriptor* descriptor_;
-  map<string, string> variables_;
+  std::map<string, string> variables_;
   const int messageBitIndex_;
   const int builderBitIndex_;
   Context* context_;
@@ -105,7 +105,7 @@ class ImmutablePrimitiveOneofFieldLiteGenerator
   void GenerateMembers(io::Printer* printer) const;
   void GenerateBuilderMembers(io::Printer* printer) const;
   void GenerateBuildingCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
+  void GenerateVisitCode(io::Printer* printer) const;
   void GenerateParsingCode(io::Printer* printer) const;
   void GenerateSerializationCode(io::Printer* printer) const;
   void GenerateSerializedSizeCode(io::Printer* printer) const;
@@ -130,7 +130,7 @@ class RepeatedImmutablePrimitiveFieldLiteGenerator
   void GenerateBuilderMembers(io::Printer* printer) const;
   void GenerateInitializationCode(io::Printer* printer) const;
   void GenerateBuilderClearCode(io::Printer* printer) const;
-  void GenerateMergingCode(io::Printer* printer) const;
+  void GenerateVisitCode(io::Printer* printer) const;
   void GenerateBuildingCode(io::Printer* printer) const;
   void GenerateDynamicMethodMakeImmutableCode(io::Printer* printer) const;
   void GenerateParsingCode(io::Printer* printer) const;
@@ -146,7 +146,7 @@ class RepeatedImmutablePrimitiveFieldLiteGenerator
 
  private:
   const FieldDescriptor* descriptor_;
-  map<string, string> variables_;
+  std::map<string, string> variables_;
   const int messageBitIndex_;
   const int builderBitIndex_;
   Context* context_;

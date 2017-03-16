@@ -36,9 +36,7 @@
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/fastmem.h>
-
 #include <google/protobuf/arena.h>
-#include <google/protobuf/generated_message_util.h>
 
 
 
@@ -65,9 +63,7 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   }
 
   // Basic accessors.
-  inline const ::std::string& Get(const ::std::string* default_value) const {
-    return *ptr_;
-  }
+  inline const ::std::string& Get() const { return *ptr_; }
 
   inline ::std::string* Mutable(const ::std::string* default_value,
                            ::google::protobuf::Arena* arena) {
@@ -103,7 +99,7 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   // state. Used to implement unsafe_arena_release_<field>() methods on
   // generated classes.
   inline ::std::string* UnsafeArenaRelease(const ::std::string* default_value,
-                                      ::google::protobuf::Arena* arena) {
+                                      ::google::protobuf::Arena* /* arena */) {
     if (ptr_ == default_value) {
       return NULL;
     }
@@ -135,7 +131,8 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   // UnsafeArenaRelease() on another field of a message in the same arena. Used
   // to implement unsafe_arena_set_allocated_<field> in generated classes.
   inline void UnsafeArenaSetAllocated(const ::std::string* default_value,
-                                      ::std::string* value, ::google::protobuf::Arena* arena) {
+                                      ::std::string* value,
+                                      ::google::protobuf::Arena* /* arena */) {
     if (value != NULL) {
       ptr_ = value;
     } else {
@@ -150,13 +147,12 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
     std::swap(ptr_, other->ptr_);
   }
 
-  // Frees storage (if not on an arena) and sets field to default value.
+  // Frees storage (if not on an arena).
   inline void Destroy(const ::std::string* default_value,
                       ::google::protobuf::Arena* arena) {
     if (arena == NULL && ptr_ != default_value) {
       delete ptr_;
     }
-    ptr_ = const_cast< ::std::string* >(default_value);
   }
 
   // Clears content, but keeps allocated string if arena != NULL, to avoid the
@@ -164,7 +160,7 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   // the user) will always be the empty string. Assumes that |default_value|
   // is an empty string.
   inline void ClearToEmpty(const ::std::string* default_value,
-                           ::google::protobuf::Arena* arena) {
+                           ::google::protobuf::Arena* /* arena */) {
     if (ptr_ == default_value) {
       // Already set to default (which is empty) -- do nothing.
     } else {
@@ -176,7 +172,7 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
   // overhead of heap operations. After this returns, the content (as seen by
   // the user) will always be equal to |default_value|.
   inline void ClearToDefault(const ::std::string* default_value,
-                             ::google::protobuf::Arena* arena) {
+                             ::google::protobuf::Arena* /* arena */) {
     if (ptr_ == default_value) {
       // Already set to default -- do nothing.
     } else {
@@ -214,11 +210,19 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
     }
   }
 
+#if LANG_CXX11
+  void SetNoArena(const ::std::string* default_value, ::std::string&& value) {
+    if (IsDefault(default_value)) {
+      ptr_ = new ::std::string(std::move(value));
+    } else {
+      *ptr_ = std::move(value);
+    }
+  }
+#endif
+
   void AssignWithDefault(const ::std::string* default_value, ArenaStringPtr value);
 
-  inline const ::std::string& GetNoArena(const ::std::string* default_value) const {
-    return *ptr_;
-  }
+  inline const ::std::string& GetNoArena() const { return *ptr_; }
 
   inline ::std::string* MutableNoArena(const ::std::string* default_value) {
     if (ptr_ == default_value) {
@@ -253,7 +257,6 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
     if (ptr_ != default_value) {
       delete ptr_;
     }
-    ptr_ = NULL;
   }
 
   inline void ClearToEmptyNoArena(const ::std::string* default_value) {
@@ -281,27 +284,24 @@ struct LIBPROTOBUF_EXPORT ArenaStringPtr {
     return &ptr_;
   }
 
+  inline bool IsDefault(const ::std::string* default_value) const {
+    return ptr_ == default_value;
+  }
+
  private:
   ::std::string* ptr_;
 
   GOOGLE_ATTRIBUTE_NOINLINE void CreateInstance(::google::protobuf::Arena* arena,
                                          const ::std::string* initial_value) {
-    // Assumes ptr_ is not NULL.
-    if (initial_value != NULL) {
-      ptr_ = new ::std::string(*initial_value);
-    } else {
-      ptr_ = new ::std::string();
-    }
+    GOOGLE_DCHECK(initial_value != NULL);
+    ptr_ = new ::std::string(*initial_value);
     if (arena != NULL) {
       arena->Own(ptr_);
     }
   }
   GOOGLE_ATTRIBUTE_NOINLINE void CreateInstanceNoArena(const ::std::string* initial_value) {
-    if (initial_value != NULL) {
-      ptr_ = new ::std::string(*initial_value);
-    } else {
-      ptr_ = new ::std::string();
-    }
+    GOOGLE_DCHECK(initial_value != NULL);
+    ptr_ = new ::std::string(*initial_value);
   }
 };
 

@@ -4,6 +4,7 @@ endif()
 
 option(protobuf_ABSOLUTE_TEST_PLUGIN_PATH
   "Using absolute test_plugin path in tests" ON)
+mark_as_advanced(protobuf_ABSOLUTE_TEST_PLUGIN_PATH)
 
 include_directories(
   ${protobuf_source_dir}/gmock
@@ -16,6 +17,7 @@ add_library(gmock STATIC
   ${protobuf_source_dir}/gmock/src/gmock-all.cc
   ${protobuf_source_dir}/gmock/gtest/src/gtest-all.cc
 )
+target_link_libraries(gmock ${CMAKE_THREAD_LIBS_INIT})
 add_library(gmock_main STATIC ${protobuf_source_dir}/gmock/src/gmock_main.cc)
 target_link_libraries(gmock_main gmock)
 
@@ -52,6 +54,8 @@ set(tests_protos
   google/protobuf/unittest_preserve_unknown_enum.proto
   google/protobuf/unittest_preserve_unknown_enum2.proto
   google/protobuf/unittest_proto3_arena.proto
+  google/protobuf/unittest_proto3_arena_lite.proto
+  google/protobuf/unittest_proto3_lite.proto
   google/protobuf/unittest_well_known_types.proto
   google/protobuf/util/internal/testdata/anys.proto
   google/protobuf/util/internal/testdata/books.proto
@@ -60,9 +64,12 @@ set(tests_protos
   google/protobuf/util/internal/testdata/field_mask.proto
   google/protobuf/util/internal/testdata/maps.proto
   google/protobuf/util/internal/testdata/oneofs.proto
+  google/protobuf/util/internal/testdata/proto3.proto
   google/protobuf/util/internal/testdata/struct.proto
   google/protobuf/util/internal/testdata/timestamp_duration.proto
+  google/protobuf/util/internal/testdata/wrappers.proto
   google/protobuf/util/json_format_proto3.proto
+  google/protobuf/util/message_differencer_unittest.proto
 )
 
 macro(compile_proto_file filename)
@@ -99,8 +106,6 @@ set(common_test_files
   ${protobuf_source_dir}/src/google/protobuf/test_util.cc
   ${protobuf_source_dir}/src/google/protobuf/testing/file.cc
   ${protobuf_source_dir}/src/google/protobuf/testing/googletest.cc
-  ${protobuf_source_dir}/src/google/protobuf/compiler/mock_code_generator.cc
-  ${protobuf_source_dir}/src/google/protobuf/util/internal/type_info_test_helper.cc
 )
 
 set(common_lite_test_files
@@ -117,10 +122,13 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_bootstrap_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_plugin_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/cpp_unittest.cc
+  ${protobuf_source_dir}/src/google/protobuf/compiler/cpp/metadata_test.cc
+  ${protobuf_source_dir}/src/google/protobuf/compiler/csharp/csharp_bootstrap_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/csharp/csharp_generator_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/importer_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/java/java_doc_comment_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/java/java_plugin_unittest.cc
+  ${protobuf_source_dir}/src/google/protobuf/compiler/mock_code_generator.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/objectivec/objectivec_helpers_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/parser_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/compiler/python/python_plugin_unittest.cc
@@ -140,7 +148,9 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/message_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/no_field_presence_test.cc
   ${protobuf_source_dir}/src/google/protobuf/preserve_unknown_enum_test.cc
+  ${protobuf_source_dir}/src/google/protobuf/proto3_arena_lite_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/proto3_arena_unittest.cc
+  ${protobuf_source_dir}/src/google/protobuf/proto3_lite_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/reflection_ops_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/repeated_field_reflection_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/repeated_field_unittest.cc
@@ -166,7 +176,9 @@ set(tests_files
   ${protobuf_source_dir}/src/google/protobuf/util/internal/json_stream_parser_test.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/protostream_objectsource_test.cc
   ${protobuf_source_dir}/src/google/protobuf/util/internal/protostream_objectwriter_test.cc
+  ${protobuf_source_dir}/src/google/protobuf/util/internal/type_info_test_helper.cc
   ${protobuf_source_dir}/src/google/protobuf/util/json_util_test.cc
+  ${protobuf_source_dir}/src/google/protobuf/util/message_differencer_unittest.cc
   ${protobuf_source_dir}/src/google/protobuf/util/time_util_test.cc
   ${protobuf_source_dir}/src/google/protobuf/util/type_resolver_util_test.cc
   ${protobuf_source_dir}/src/google/protobuf/well_known_types_unittest.cc
@@ -204,4 +216,5 @@ target_link_libraries(lite-arena-test libprotobuf-lite gmock_main)
 
 add_custom_target(check
   COMMAND tests
+  DEPENDS tests test_plugin
   WORKING_DIRECTORY ${protobuf_source_dir})

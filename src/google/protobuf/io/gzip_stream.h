@@ -43,10 +43,9 @@
 #ifndef GOOGLE_PROTOBUF_IO_GZIP_STREAM_H__
 #define GOOGLE_PROTOBUF_IO_GZIP_STREAM_H__
 
-#include <zlib.h>
-
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream.h>
+#include <zlib.h>
 
 namespace google {
 namespace protobuf {
@@ -119,7 +118,7 @@ class LIBPROTOBUF_EXPORT GzipOutputStream : public ZeroCopyOutputStream {
     ZLIB = 2,
   };
 
-  struct Options {
+  struct LIBPROTOBUF_EXPORT Options {
     // Defaults to GZIP.
     Format format;
 

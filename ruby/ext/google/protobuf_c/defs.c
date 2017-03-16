@@ -101,7 +101,7 @@ void DescriptorPool_mark(void* _self) {
 
 void DescriptorPool_free(void* _self) {
   DescriptorPool* self = _self;
-  upb_symtab_unref(self->symtab, &self->symtab);
+  upb_symtab_free(self->symtab);
   xfree(self);
 }
 
@@ -113,7 +113,7 @@ void DescriptorPool_free(void* _self) {
  */
 VALUE DescriptorPool_alloc(VALUE klass) {
   DescriptorPool* self = ALLOC(DescriptorPool);
-  self->symtab = upb_symtab_new(&self->symtab);
+  self->symtab = upb_symtab_new();
   return TypedData_Wrap_Struct(klass, &_DescriptorPool_type, self);
 }
 
@@ -243,6 +243,10 @@ void Descriptor_free(void* _self) {
   if (self->fill_method) {
     upb_pbdecodermethod_unref(self->fill_method, &self->fill_method);
   }
+  if (self->json_fill_method) {
+    upb_json_parsermethod_unref(self->json_fill_method,
+                                &self->json_fill_method);
+  }
   if (self->pb_serialize_handlers) {
     upb_handlers_unref(self->pb_serialize_handlers,
                        &self->pb_serialize_handlers);
@@ -250,6 +254,10 @@ void Descriptor_free(void* _self) {
   if (self->json_serialize_handlers) {
     upb_handlers_unref(self->json_serialize_handlers,
                        &self->json_serialize_handlers);
+  }
+  if (self->json_serialize_handlers_preserve) {
+    upb_handlers_unref(self->json_serialize_handlers_preserve,
+                       &self->json_serialize_handlers_preserve);
   }
   xfree(self);
 }
@@ -271,8 +279,10 @@ VALUE Descriptor_alloc(VALUE klass) {
   self->layout = NULL;
   self->fill_handlers = NULL;
   self->fill_method = NULL;
+  self->json_fill_method = NULL;
   self->pb_serialize_handlers = NULL;
   self->json_serialize_handlers = NULL;
+  self->json_serialize_handlers_preserve = NULL;
   self->typeclass_references = rb_ary_new();
   return ret;
 }

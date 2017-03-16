@@ -65,12 +65,20 @@ class ExtensionGenerator;      // extension.h
 class FileGenerator {
  public:
   // See generator.cc for the meaning of dllexport_decl.
-  explicit FileGenerator(const FileDescriptor* file,
-                         const Options& options);
+  FileGenerator(const FileDescriptor* file, const Options& options);
   ~FileGenerator();
 
-  void GenerateProtoHeader(io::Printer* printer);
-  void GeneratePBHeader(io::Printer* printer);
+  // Shared code between the two header generators below.
+  void GenerateHeader(io::Printer* printer);
+
+  // info_path, if non-empty, should be the path (relative to printer's output)
+  // to the metadata file describing this proto header.
+  void GenerateProtoHeader(io::Printer* printer,
+                           const string& info_path);
+  // info_path, if non-empty, should be the path (relative to printer's output)
+  // to the metadata file describing this PB header.
+  void GeneratePBHeader(io::Printer* printer,
+                        const string& info_path);
   void GenerateSource(io::Printer* printer);
 
  private:
@@ -102,24 +110,16 @@ class FileGenerator {
   void GenerateLibraryIncludes(io::Printer* printer);
   void GenerateDependencyIncludes(io::Printer* printer);
 
+  // Generate a pragma to pull in metadata using the given info_path (if
+  // non-empty). info_path should be relative to printer's output.
+  void GenerateMetadataPragma(io::Printer* printer, const string& info_path);
+
   // Generates a couple of different pieces before definitions:
   void GenerateGlobalStateFunctionDeclarations(io::Printer* printer);
 
   // Generates types for classes.
   void GenerateMessageDefinitions(io::Printer* printer);
 
-  // Generates forward-declarations for just this file's classes. This is
-  // used for .pb.h headers, but not in proto_h mode.
-  void GenerateMessageForwardDeclarations(io::Printer* printer);
-
-  // Fills in types for forward declarations. This is used internally, and
-  // also by other FileGenerators to determine imports' declarations.
-  void FillMessageForwardDeclarations(ForwardDeclarations* decls);
-  void FillMessageDefinitions(ForwardDeclarations* decls);
-
-  // Generates enum definitions.
-  void GenerateEnumForwardDeclarations(io::Printer* printer);
-  void FillEnumForwardDeclarations(ForwardDeclarations* decls);
   void GenerateEnumDefinitions(io::Printer* printer);
 
   // Generates generic service definitions.
@@ -134,15 +134,27 @@ class FileGenerator {
   void GenerateProto2NamespaceEnumSpecializations(io::Printer* printer);
 
   const FileDescriptor* file_;
+  const Options options_;
 
-  google::protobuf::scoped_array<google::protobuf::scoped_ptr<MessageGenerator> > message_generators_;
-  google::protobuf::scoped_array<google::protobuf::scoped_ptr<EnumGenerator> > enum_generators_;
-  google::protobuf::scoped_array<google::protobuf::scoped_ptr<ServiceGenerator> > service_generators_;
-  google::protobuf::scoped_array<google::protobuf::scoped_ptr<ExtensionGenerator> > extension_generators_;
+  // Contains the post-order walk of all the messages (and child messages) in
+  // this file. If you need a pre-order walk just reverse iterate.
+  std::vector<MessageGenerator*> message_generators_;
+  std::vector<EnumGenerator*> enum_generators_;
+  std::vector<ServiceGenerator*> service_generators_;
+  std::vector<ExtensionGenerator*> extension_generators_;
+
+  // These members are just for owning (and thus proper deleting). Some of the
+  // message_ and enum_generators above are owned by child messages.
+  google::protobuf::scoped_array<google::protobuf::scoped_ptr<MessageGenerator> >
+      message_generators_owner_;
+  google::protobuf::scoped_array<google::protobuf::scoped_ptr<EnumGenerator> > enum_generators_owner_;
+  google::protobuf::scoped_array<google::protobuf::scoped_ptr<ServiceGenerator> >
+      service_generators_owner_;
+  google::protobuf::scoped_array<google::protobuf::scoped_ptr<ExtensionGenerator> >
+      extension_generators_owner_;
 
   // E.g. if the package is foo.bar, package_parts_ is {"foo", "bar"}.
-  vector<string> package_parts_;
-  const Options options_;
+  std::vector<string> package_parts_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(FileGenerator);
 };

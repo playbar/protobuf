@@ -249,11 +249,11 @@ bool Parser::ConsumeNumber(double* output, const char* error) {
     input_->Next();
     return true;
   } else if (LookingAt("inf")) {
-    *output = numeric_limits<double>::infinity();
+    *output = std::numeric_limits<double>::infinity();
     input_->Next();
     return true;
   } else if (LookingAt("nan")) {
-    *output = numeric_limits<double>::quiet_NaN();
+    *output = std::numeric_limits<double>::quiet_NaN();
     input_->Next();
     return true;
   } else {
@@ -282,7 +282,7 @@ bool Parser::TryConsumeEndOfDeclaration(
     const char* text, const LocationRecorder* location) {
   if (LookingAt(text)) {
     string leading, trailing;
-    vector<string> detached;
+    std::vector<string> detached;
     input_->NextWithComments(&trailing, &detached, &leading);
 
     // Save the leading comments for next time, and recall the leading comments
@@ -404,7 +404,7 @@ void Parser::LocationRecorder::RecordLegacyLocation(const Message* descriptor,
 
 void Parser::LocationRecorder::AttachComments(
     string* leading, string* trailing,
-    vector<string>* detached_comments) const {
+    std::vector<string>* detached_comments) const {
   GOOGLE_CHECK(!location_->has_leading_comments());
   GOOGLE_CHECK(!location_->has_trailing_comments());
 
@@ -458,6 +458,61 @@ void Parser::SkipRestOfBlock() {
 
 // ===================================================================
 
+bool Parser::ValidateEnum(const EnumDescriptorProto* proto) {
+  bool has_allow_alias = false;
+  bool allow_alias = false;
+
+  for (int i = 0; i < proto->options().uninterpreted_option_size(); i++) {
+    const UninterpretedOption option = proto->options().uninterpreted_option(i);
+    if (option.name_size() > 1) {
+      continue;
+    }
+    if (!option.name(0).is_extension() &&
+        option.name(0).name_part() == "allow_alias") {
+      has_allow_alias = true;
+      if (option.identifier_value() == "true") {
+        allow_alias = true;
+      }
+      break;
+    }
+  }
+
+  if (has_allow_alias && !allow_alias) {
+    string error =
+        "\"" + proto->name() +
+        "\" declares 'option allow_alias = false;' which has no effect. "
+        "Please remove the declaration.";
+    // This needlessly clutters declarations with nops.
+    AddError(error);
+    return false;
+  }
+
+  std::set<int> used_values;
+  bool has_duplicates = false;
+  for (int i = 0; i < proto->value_size(); ++i) {
+    const EnumValueDescriptorProto enum_value = proto->value(i);
+    if (used_values.find(enum_value.number()) != used_values.end()) {
+      has_duplicates = true;
+      break;
+    } else {
+      used_values.insert(enum_value.number());
+    }
+  }
+  if (allow_alias && !has_duplicates) {
+    string error =
+        "\"" + proto->name() +
+        "\" declares support for enum aliases but no enum values share field "
+        "numbers. Please remove the unnecessary 'option allow_alias = true;' "
+        "declaration.";
+    // Generate an error if an enum declares support for duplicate enum values
+    // and does not use it protect future authors.
+    AddError(error);
+    return false;
+  }
+
+  return true;
+}
+
 bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
   input_ = input;
   had_errors_ = false;
@@ -470,7 +525,6 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
   SourceCodeInfo source_code_info;
   source_code_info_ = &source_code_info;
 
-  vector<string> top_doc_comments;
   if (LookingAtType(io::Tokenizer::TYPE_START)) {
     // Advance to first token.
     input_->NextWithComments(NULL, &upcoming_detached_comments_,
@@ -489,9 +543,9 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
       // Store the syntax into the file.
       if (file != NULL) file->set_syntax(syntax_identifier_);
     } else if (!stop_after_syntax_identifier_) {
-      GOOGLE_LOG(WARNING) << "No syntax specified for the proto file. "
-                   << "Please use 'syntax = \"proto2\";' or "
-                   << "'syntax = \"proto3\";' to specify a syntax "
+      GOOGLE_LOG(WARNING) << "No syntax specified for the proto file: "
+                   << file->name() << ". Please use 'syntax = \"proto2\";' "
+                   << "or 'syntax = \"proto3\";' to specify a syntax "
                    << "version. (Defaulted to proto2 syntax.)";
       syntax_identifier_ = "proto2";
     }
@@ -516,6 +570,7 @@ bool Parser::Parse(io::Tokenizer* input, FileDescriptorProto* file) {
 
   input_ = NULL;
   source_code_info_ = NULL;
+  assert(file != NULL);
   source_code_info.Swap(file->mutable_source_code_info());
   return !had_errors_;
 }
@@ -1575,6 +1630,16 @@ bool Parser::ParseOneof(OneofDescriptorProto* oneof_decl,
       return false;
     }
 
+    if (LookingAt("option")) {
+      LocationRecorder option_location(
+          oneof_location, OneofDescriptorProto::kOptionsFieldNumber);
+      if (!ParseOption(oneof_decl->mutable_options(), option_location,
+                       containing_file, OPTION_STATEMENT)) {
+        return false;
+      }
+      continue;
+    }
+
     // Print a nice error if the user accidentally tries to place a label
     // on an individual member of a oneof.
     if (LookingAt("required") ||
@@ -1627,6 +1692,9 @@ bool Parser::ParseEnumDefinition(EnumDescriptorProto* enum_type,
   }
 
   DO(ParseEnumBlock(enum_type, enum_location, containing_file));
+
+  DO(ValidateEnum(enum_type));
+
   return true;
 }
 
@@ -2021,7 +2089,7 @@ bool SourceLocationTable::Find(
     const Message* descriptor,
     DescriptorPool::ErrorCollector::ErrorLocation location,
     int* line, int* column) const {
-  const pair<int, int>* result =
+  const std::pair<int, int>* result =
       FindOrNull(location_map_, std::make_pair(descriptor, location));
   if (result == NULL) {
     *line   = -1;
