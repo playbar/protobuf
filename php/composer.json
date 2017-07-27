@@ -18,10 +18,8 @@
       "Google\\Protobuf\\": "tests/generated/Google/Protobuf",
       "Google\\Protobuf\\Internal\\": "src/Google/Protobuf/Internal",
       "GPBMetadata\\": "tests/generated/GPBMetadata",
-      "GPBMetadata\\Google\\Protobuf\\Internal\\": "src/GPBMetadata/Google/Protobuf/Internal"
-    },
-    "files": [
-      "src/Google/Protobuf/descriptor.php"
-    ]
+      "GPBMetadata\\Google\\Protobuf\\Internal\\": "src/GPBMetadata/Google/Protobuf/Internal",
+      "": "tests/generated"
+    }
   }
 }

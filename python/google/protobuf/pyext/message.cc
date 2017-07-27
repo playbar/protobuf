@@ -779,7 +779,7 @@ PyObject* CheckString(PyObject* arg, const FieldDescriptor* descriptor) {
       encoded_string = arg;  // Already encoded.
       Py_INCREF(encoded_string);
     } else {
-      encoded_string = PyUnicode_AsEncodedObject(arg, "utf-8", NULL);
+      encoded_string = PyUnicode_AsEncodedString(arg, "utf-8", NULL);
     }
   } else {
     // In this case field type is "bytes".
@@ -1055,13 +1055,15 @@ int InternalDeleteRepeatedField(
 
   if (PySlice_Check(slice)) {
     from = to = step = slice_length = 0;
-    PySlice_GetIndicesEx(
 #if PY_MAJOR_VERSION < 3
+    PySlice_GetIndicesEx(
         reinterpret_cast<PySliceObject*>(slice),
-#else
-        slice,
-#endif
         length, &from, &to, &step, &slice_length);
+#else
+    PySlice_GetIndicesEx(
+        slice,
+        length, &from, &to, &step, &slice_length);
+#endif
     if (from < to) {
       min = from;
       max = to - 1;

@@ -8,21 +8,20 @@ use Google\Protobuf\Internal\GPBType;
 use Google\Protobuf\Internal\GPBWire;
 use Google\Protobuf\Internal\RepeatedField;
 use Google\Protobuf\Internal\InputStream;
-
 use Google\Protobuf\Internal\GPBUtil;
 
 /**
- * Protobuf type <code>google.protobuf.DescriptorProto.ExtensionRange</code>
+ * Generated from protobuf message <code>google.protobuf.DescriptorProto.ExtensionRange</code>
  */
 class DescriptorProto_ExtensionRange extends \Google\Protobuf\Internal\Message
 {
     /**
-     * <code>optional int32 start = 1;</code>
+     * Generated from protobuf field <code>optional int32 start = 1;</code>
      */
     private $start = 0;
     private $has_start = false;
     /**
-     * <code>optional int32 end = 2;</code>
+     * Generated from protobuf field <code>optional int32 end = 2;</code>
      */
     private $end = 0;
     private $has_end = false;
@@ -33,7 +32,8 @@ class DescriptorProto_ExtensionRange extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * <code>optional int32 start = 1;</code>
+     * Generated from protobuf field <code>optional int32 start = 1;</code>
+     * @return int
      */
     public function getStart()
     {
@@ -41,13 +41,17 @@ class DescriptorProto_ExtensionRange extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * <code>optional int32 start = 1;</code>
+     * Generated from protobuf field <code>optional int32 start = 1;</code>
+     * @param int $var
+     * @return $this
      */
     public function setStart($var)
     {
         GPBUtil::checkInt32($var);
         $this->start = $var;
         $this->has_start = true;
+
+        return $this;
     }
 
     public function hasStart()
@@ -56,7 +60,8 @@ class DescriptorProto_ExtensionRange extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * <code>optional int32 end = 2;</code>
+     * Generated from protobuf field <code>optional int32 end = 2;</code>
+     * @return int
      */
     public function getEnd()
     {
@@ -64,13 +69,17 @@ class DescriptorProto_ExtensionRange extends \Google\Protobuf\Internal\Message
     }
 
     /**
-     * <code>optional int32 end = 2;</code>
+     * Generated from protobuf field <code>optional int32 end = 2;</code>
+     * @param int $var
+     * @return $this
      */
     public function setEnd($var)
     {
         GPBUtil::checkInt32($var);
         $this->end = $var;
         $this->has_end = true;
+
+        return $this;
     }
 
     public function hasEnd()

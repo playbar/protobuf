@@ -37,9 +37,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#ifdef _MSC_VER
-#include <io.h>
-#else
+#ifndef _MSC_VER
 #include <unistd.h>
 #endif
 #include <sstream>
@@ -56,12 +54,20 @@
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/io_win32.h>
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/testing/googletest.h>
 #include <gtest/gtest.h>
 
 namespace google {
 namespace protobuf {
+
+#if defined(_WIN32)
+// DO NOT include <io.h>, instead create functions in io_win32.{h,cc} and import
+// them like we do below.
+using google::protobuf::internal::win32::close;
+using google::protobuf::internal::win32::open;
+#endif
 
 #ifndef O_BINARY
 #ifdef _O_BINARY
@@ -549,6 +555,17 @@ TEST(MessageTest, MergeFrom) {
   EXPECT_EQ(11, dest.repeated_uint32(0));
   EXPECT_EQ(12, dest.repeated_uint32(1));
   ASSERT_EQ(0, dest.repeated_uint64_size());
+}
+
+TEST(MessageTest, IsInitialized) {
+  protobuf_unittest::TestIsInitialized msg;
+  EXPECT_TRUE(msg.IsInitialized());
+  protobuf_unittest::TestIsInitialized::SubMessage* sub_message = msg.mutable_sub_message();
+  EXPECT_TRUE(msg.IsInitialized());
+  protobuf_unittest::TestIsInitialized::SubMessage::SubGroup* sub_group = sub_message->mutable_subgroup();
+  EXPECT_FALSE(msg.IsInitialized());
+  sub_group->set_i(1);
+  EXPECT_TRUE(msg.IsInitialized());
 }
 
 TEST(MessageFactoryTest, GeneratedFactoryLookup) {

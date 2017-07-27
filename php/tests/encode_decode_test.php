@@ -9,6 +9,7 @@ use Foo\TestEnum;
 use Foo\TestMessage;
 use Foo\TestMessage_Sub;
 use Foo\TestPackedMessage;
+use Foo\TestRandomFieldOrder;
 use Foo\TestUnpackedMessage;
 
 class EncodeDecodeTest extends TestBase
@@ -88,6 +89,30 @@ class EncodeDecodeTest extends TestBase
         $n = new TestMessage();
         $n->mergeFromString($data);
         $this->assertSame(1, $n->getOneofMessage()->getA());
+
+        // Encode default value
+        $m->setOneofEnum(TestEnum::ZERO);
+        $data = $m->serializeToString();
+        $n = new TestMessage();
+        $n->mergeFromString($data);
+        $this->assertSame("oneof_enum", $n->getMyOneof());
+        $this->assertSame(TestEnum::ZERO, $n->getOneofEnum());
+
+        $m->setOneofString("");
+        $data = $m->serializeToString();
+        $n = new TestMessage();
+        $n->mergeFromString($data);
+        $this->assertSame("oneof_string", $n->getMyOneof());
+        $this->assertSame("", $n->getOneofString());
+
+        $sub_m = new TestMessage_Sub();
+        $m->setOneofMessage($sub_m);
+        $data = $m->serializeToString();
+        $n = new TestMessage();
+        $n->mergeFromString($data);
+        $this->assertSame("oneof_message", $n->getMyOneof());
+        $this->assertFalse(is_null($n->getOneofMessage()));
+
     }
 
     public function testPackedEncode()
@@ -194,7 +219,7 @@ class EncodeDecodeTest extends TestBase
     {
         $m = new TestMessage();
         $m->setOptionalInt32(-1);
-        $data = $m->encode();
+        $data = $m->serializeToString();
         $this->assertSame("08ffffffffffffffffff01", bin2hex($data));
     }
 
@@ -202,24 +227,227 @@ class EncodeDecodeTest extends TestBase
     {
         $m = new TestMessage();
         $this->assertEquals(0, $m->getOptionalInt32());
-        $m->decode(hex2bin("08ffffffffffffffffff01"));
+        $m->mergeFromString(hex2bin("08ffffffffffffffffff01"));
         $this->assertEquals(-1, $m->getOptionalInt32());
 
         $m = new TestMessage();
         $this->assertEquals(0, $m->getOptionalInt32());
-        $m->decode(hex2bin("08ffffffff0f"));
+        $m->mergeFromString(hex2bin("08ffffffff0f"));
         $this->assertEquals(-1, $m->getOptionalInt32());
     }
 
-    # TODO(teboring): Add test back when php implementation is ready for json
-    # encode/decode.
-    # public function testJsonEncode()
-    # {
-    #     $from = new TestMessage();
-    #     $this->setFields($from);
-    #     $data = $from->jsonEncode();
-    #     $to = new TestMessage();
-    #     $to->jsonDecode($data);
-    #     $this->expectFields($to);
-    # }
+    public function testRandomFieldOrder()
+    {
+        $m = new TestRandomFieldOrder();
+        $data = $m->serializeToString();
+        $this->assertSame("", $data);
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidInt32()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('08'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidSubMessage()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('9A010108'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidInt64()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('10'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidUInt32()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('18'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidUInt64()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('20'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidSInt32()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('28'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidSInt64()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('30'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidFixed32()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('3D'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidFixed64()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('41'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidSFixed32()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('4D'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidSFixed64()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('51'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidFloat()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('5D'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidDouble()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('61'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidBool()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('68'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidStringLengthMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('72'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidStringDataMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('7201'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidBytesLengthMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('7A'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidBytesDataMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('7A01'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidEnum()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('8001'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidMessageLengthMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('8A01'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidMessageDataMiss()
+    {
+        $m = new TestMessage();
+        $m->mergeFromString(hex2bin('8A0101'));
+    }
+
+    /**
+     * @expectedException Exception
+     */
+    public function testDecodeInvalidPackedMessageLength()
+    {
+        $m = new TestPackedMessage();
+        $m->mergeFromString(hex2bin('D205'));
+    }
+
+    public function testJsonEncode()
+    {
+        $from = new TestMessage();
+        $this->setFields($from);
+        $data = $from->serializeToJsonString();
+        $to = new TestMessage();
+        $to->mergeFromJsonString($data);
+        $this->expectFields($to);
+    }
 }

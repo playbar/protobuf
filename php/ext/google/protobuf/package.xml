@@ -13,16 +13,16 @@
  <date>2017-01-13</date>
  <time>16:06:07</time>
  <version>
-  <release>3.2.0a1</release>
-  <api>3.2.0a1</api>
+  <release>3.3.2</release>
+  <api>3.3.0</api>
  </version>
  <stability>
-  <release>alpha</release>
-  <api>alpha</api>
+  <release>stable</release>
+  <api>stable</api>
  </stability>
  <license uri="https://opensource.org/licenses/BSD-3-Clause">3-Clause BSD License</license>
  <notes>
-Second alpha release.
+GA release.
  </notes>
  <contents>
   <dir baseinstalldir="/" name="/">
@@ -40,6 +40,7 @@ Second alpha release.
     <file baseinstalldir="/" name="upb.h" role="src" />
     <file baseinstalldir="/" name="utf8.c" role="src" />
     <file baseinstalldir="/" name="utf8.h" role="src" />
+    <file baseinstalldir="/" name="LICENSE" role="doc" />
   </dir>
  </contents>
  <dependencies>
@@ -85,6 +86,54 @@ First alpha release
    <license uri="https://opensource.org/licenses/BSD-3-Clause">3-Clause BSD License</license>
    <notes>
 Second alpha release.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.3.0</release>
+    <api>3.3.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2017-04-28</date>
+   <time>16:06:07</time>
+   <license uri="https://opensource.org/licenses/BSD-3-Clause">3-Clause BSD License</license>
+   <notes>
+GA release.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.3.1</release>
+    <api>3.3.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2017-05-08</date>
+   <time>15:33:07</time>
+   <license uri="https://opensource.org/licenses/BSD-3-Clause">3-Clause BSD License</license>
+   <notes>
+GA release.
+   </notes>
+  </release>
+  <release>
+   <version>
+    <release>3.3.2</release>
+    <api>3.3.0</api>
+   </version>
+   <stability>
+    <release>stable</release>
+    <api>stable</api>
+   </stability>
+   <date>2017-06-21</date>
+   <time>15:33:07</time>
+   <license uri="https://opensource.org/licenses/BSD-3-Clause">3-Clause BSD License</license>
+   <notes>
+GA release.
    </notes>
   </release>
  </changelog>

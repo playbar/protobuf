@@ -35,11 +35,28 @@ namespace {
 
 }  // namespace
 
+PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTableField
+    const TableStruct::entries[] = {
+  {0, 0, 0, ::google::protobuf::internal::kInvalidMask, 0, 0},
+};
+
+PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::AuxillaryParseTableField
+    const TableStruct::aux[] = {
+  ::google::protobuf::internal::AuxillaryParseTableField(),
+};
+PROTOBUF_CONSTEXPR_VAR ::google::protobuf::internal::ParseTable const
+    TableStruct::schema[] = {
+  { NULL, NULL, 0, -1, -1, false },
+  { NULL, NULL, 0, -1, -1, false },
+  { NULL, NULL, 0, -1, -1, false },
+};
+
 const ::google::protobuf::uint32 TableStruct::offsets[] = {
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Api, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Api, name_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Api, methods_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Api, options_),
@@ -51,6 +68,7 @@ const ::google::protobuf::uint32 TableStruct::offsets[] = {
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Method, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Method, name_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Method, request_type_url_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Method, request_streaming_),
@@ -62,14 +80,15 @@ const ::google::protobuf::uint32 TableStruct::offsets[] = {
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Mixin, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Mixin, name_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(Mixin, root_),
 };
 
 static const ::google::protobuf::internal::MigrationSchema schemas[] = {
   { 0, -1, sizeof(Api)},
-  { 11, -1, sizeof(Method)},
-  { 22, -1, sizeof(Mixin)},
+  { 12, -1, sizeof(Method)},
+  { 24, -1, sizeof(Mixin)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
@@ -127,6 +146,7 @@ void InitDefaults() {
   static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
   ::google::protobuf::GoogleOnceInit(&once, &TableStruct::InitDefaultsImpl);
 }
+namespace {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] = {
@@ -158,12 +178,13 @@ void AddDescriptorsImpl() {
   ::google::protobuf::protobuf_google_2fprotobuf_2ftype_2eproto::AddDescriptors();
   ::google::protobuf::internal::OnShutdown(&TableStruct::Shutdown);
 }
+} // anonymous namespace
 
 void AddDescriptors() {
   static GOOGLE_PROTOBUF_DECLARE_ONCE(once);
   ::google::protobuf::GoogleOnceInit(&once, &AddDescriptorsImpl);
 }
-// Force AddDescriptors() to be called at static initialization time.
+// Force AddDescriptors() to be called at dynamic initialization time.
 struct StaticDescriptorInitializer {
   StaticDescriptorInitializer() {
     AddDescriptors();
@@ -221,8 +242,9 @@ Api::Api(const Api& from)
 void Api::SharedCtor() {
   name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   version_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&source_context_, 0, reinterpret_cast<char*>(&syntax_) -
-    reinterpret_cast<char*>(&source_context_) + sizeof(syntax_));
+  ::memset(&source_context_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&syntax_) -
+      reinterpret_cast<char*>(&source_context_)) + sizeof(syntax_));
   _cached_size_ = 0;
 }
 
@@ -246,7 +268,7 @@ void Api::SetCachedSize(int size) const {
 }
 const ::google::protobuf::Descriptor* Api::descriptor() {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[0].descriptor;
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
 const Api& Api::default_instance() {
@@ -293,7 +315,7 @@ bool Api::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_name()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->name().data(), this->name().length(),
+            this->name().data(), static_cast<int>(this->name().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Api.name"));
         } else {
@@ -306,13 +328,11 @@ bool Api::MergePartialFromCodedStream(
       case 2: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(18u)) {
-          DO_(input->IncrementRecursionDepth());
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_methods()));
         } else {
           goto handle_unusual;
         }
-        input->UnsafeDecrementRecursionDepth();
         break;
       }
 
@@ -320,13 +340,11 @@ bool Api::MergePartialFromCodedStream(
       case 3: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(26u)) {
-          DO_(input->IncrementRecursionDepth());
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_options()));
         } else {
           goto handle_unusual;
         }
-        input->UnsafeDecrementRecursionDepth();
         break;
       }
 
@@ -337,7 +355,7 @@ bool Api::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_version()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->version().data(), this->version().length(),
+            this->version().data(), static_cast<int>(this->version().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Api.version"));
         } else {
@@ -362,13 +380,11 @@ bool Api::MergePartialFromCodedStream(
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(50u)) {
-          DO_(input->IncrementRecursionDepth());
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_mixins()));
         } else {
           goto handle_unusual;
         }
-        input->UnsafeDecrementRecursionDepth();
         break;
       }
 
@@ -411,10 +427,13 @@ failure:
 void Api::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:google.protobuf.Api)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Api.name");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -422,21 +441,23 @@ void Api::SerializeWithCachedSizes(
   }
 
   // repeated .google.protobuf.Method methods = 2;
-  for (unsigned int i = 0, n = this->methods_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->methods_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      2, this->methods(i), output);
+      2, this->methods(static_cast<int>(i)), output);
   }
 
   // repeated .google.protobuf.Option options = 3;
-  for (unsigned int i = 0, n = this->options_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->options_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      3, this->options(i), output);
+      3, this->options(static_cast<int>(i)), output);
   }
 
   // string version = 4;
   if (this->version().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->version().data(), this->version().length(),
+      this->version().data(), static_cast<int>(this->version().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Api.version");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -450,9 +471,10 @@ void Api::SerializeWithCachedSizes(
   }
 
   // repeated .google.protobuf.Mixin mixins = 6;
-  for (unsigned int i = 0, n = this->mixins_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->mixins_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      6, this->mixins(i), output);
+      6, this->mixins(static_cast<int>(i)), output);
   }
 
   // .google.protobuf.Syntax syntax = 7;
@@ -466,12 +488,15 @@ void Api::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Api::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic;  // Unused
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Api)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Api.name");
     target =
@@ -480,23 +505,25 @@ void Api::SerializeWithCachedSizes(
   }
 
   // repeated .google.protobuf.Method methods = 2;
-  for (unsigned int i = 0, n = this->methods_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->methods_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        2, this->methods(i), false, target);
+        2, this->methods(static_cast<int>(i)), deterministic, target);
   }
 
   // repeated .google.protobuf.Option options = 3;
-  for (unsigned int i = 0, n = this->options_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->options_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        3, this->options(i), false, target);
+        3, this->options(static_cast<int>(i)), deterministic, target);
   }
 
   // string version = 4;
   if (this->version().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->version().data(), this->version().length(),
+      this->version().data(), static_cast<int>(this->version().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Api.version");
     target =
@@ -508,14 +535,15 @@ void Api::SerializeWithCachedSizes(
   if (this->has_source_context()) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        5, *this->source_context_, false, target);
+        5, *this->source_context_, deterministic, target);
   }
 
   // repeated .google.protobuf.Mixin mixins = 6;
-  for (unsigned int i = 0, n = this->mixins_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->mixins_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        6, this->mixins(i), false, target);
+        6, this->mixins(static_cast<int>(i)), deterministic, target);
   }
 
   // .google.protobuf.Syntax syntax = 7;
@@ -534,34 +562,34 @@ size_t Api::ByteSizeLong() const {
 
   // repeated .google.protobuf.Method methods = 2;
   {
-    unsigned int count = this->methods_size();
+    unsigned int count = static_cast<unsigned int>(this->methods_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->methods(i));
+          this->methods(static_cast<int>(i)));
     }
   }
 
   // repeated .google.protobuf.Option options = 3;
   {
-    unsigned int count = this->options_size();
+    unsigned int count = static_cast<unsigned int>(this->options_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->options(i));
+          this->options(static_cast<int>(i)));
     }
   }
 
   // repeated .google.protobuf.Mixin mixins = 6;
   {
-    unsigned int count = this->mixins_size();
+    unsigned int count = static_cast<unsigned int>(this->mixins_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->mixins(i));
+          this->mixins(static_cast<int>(i)));
     }
   }
 
@@ -618,6 +646,9 @@ void Api::MergeFrom(const Api& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.Api)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   methods_.MergeFrom(from.methods_);
   options_.MergeFrom(from.options_);
   mixins_.MergeFrom(from.mixins_);
@@ -660,9 +691,9 @@ void Api::Swap(Api* other) {
   InternalSwap(other);
 }
 void Api::InternalSwap(Api* other) {
-  methods_.UnsafeArenaSwap(&other->methods_);
-  options_.UnsafeArenaSwap(&other->options_);
-  mixins_.UnsafeArenaSwap(&other->mixins_);
+  methods_.InternalSwap(&other->methods_);
+  options_.InternalSwap(&other->options_);
+  mixins_.InternalSwap(&other->mixins_);
   name_.Swap(&other->name_);
   version_.Swap(&other->version_);
   std::swap(source_context_, other->source_context_);
@@ -672,7 +703,7 @@ void Api::InternalSwap(Api* other) {
 
 ::google::protobuf::Metadata Api::GetMetadata() const {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[0];
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -700,6 +731,7 @@ void Api::set_name(::std::string&& value) {
 }
 #endif
 void Api::set_name(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Api.name)
@@ -812,6 +844,7 @@ void Api::set_version(::std::string&& value) {
 }
 #endif
 void Api::set_version(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   version_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Api.version)
@@ -966,8 +999,8 @@ Method::Method(const Method& from)
     response_type_url_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.response_type_url_);
   }
   ::memcpy(&request_streaming_, &from.request_streaming_,
-    reinterpret_cast<char*>(&syntax_) -
-    reinterpret_cast<char*>(&request_streaming_) + sizeof(syntax_));
+    static_cast<size_t>(reinterpret_cast<char*>(&syntax_) -
+    reinterpret_cast<char*>(&request_streaming_)) + sizeof(syntax_));
   // @@protoc_insertion_point(copy_constructor:google.protobuf.Method)
 }
 
@@ -975,8 +1008,9 @@ void Method::SharedCtor() {
   name_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   request_type_url_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   response_type_url_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&request_streaming_, 0, reinterpret_cast<char*>(&syntax_) -
-    reinterpret_cast<char*>(&request_streaming_) + sizeof(syntax_));
+  ::memset(&request_streaming_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&syntax_) -
+      reinterpret_cast<char*>(&request_streaming_)) + sizeof(syntax_));
   _cached_size_ = 0;
 }
 
@@ -998,7 +1032,7 @@ void Method::SetCachedSize(int size) const {
 }
 const ::google::protobuf::Descriptor* Method::descriptor() {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[1].descriptor;
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
 const Method& Method::default_instance() {
@@ -1020,8 +1054,9 @@ void Method::Clear() {
   name_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   request_type_url_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   response_type_url_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  ::memset(&request_streaming_, 0, reinterpret_cast<char*>(&syntax_) -
-    reinterpret_cast<char*>(&request_streaming_) + sizeof(syntax_));
+  ::memset(&request_streaming_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&syntax_) -
+      reinterpret_cast<char*>(&request_streaming_)) + sizeof(syntax_));
 }
 
 bool Method::MergePartialFromCodedStream(
@@ -1041,7 +1076,7 @@ bool Method::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_name()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->name().data(), this->name().length(),
+            this->name().data(), static_cast<int>(this->name().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Method.name"));
         } else {
@@ -1057,7 +1092,7 @@ bool Method::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_request_type_url()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->request_type_url().data(), this->request_type_url().length(),
+            this->request_type_url().data(), static_cast<int>(this->request_type_url().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Method.request_type_url"));
         } else {
@@ -1087,7 +1122,7 @@ bool Method::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_response_type_url()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->response_type_url().data(), this->response_type_url().length(),
+            this->response_type_url().data(), static_cast<int>(this->response_type_url().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Method.response_type_url"));
         } else {
@@ -1114,13 +1149,11 @@ bool Method::MergePartialFromCodedStream(
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(50u)) {
-          DO_(input->IncrementRecursionDepth());
-          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtualNoRecursionDepth(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
                 input, add_options()));
         } else {
           goto handle_unusual;
         }
-        input->UnsafeDecrementRecursionDepth();
         break;
       }
 
@@ -1163,10 +1196,13 @@ failure:
 void Method::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:google.protobuf.Method)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.name");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1176,7 +1212,7 @@ void Method::SerializeWithCachedSizes(
   // string request_type_url = 2;
   if (this->request_type_url().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->request_type_url().data(), this->request_type_url().length(),
+      this->request_type_url().data(), static_cast<int>(this->request_type_url().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.request_type_url");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1191,7 +1227,7 @@ void Method::SerializeWithCachedSizes(
   // string response_type_url = 4;
   if (this->response_type_url().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->response_type_url().data(), this->response_type_url().length(),
+      this->response_type_url().data(), static_cast<int>(this->response_type_url().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.response_type_url");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1204,9 +1240,10 @@ void Method::SerializeWithCachedSizes(
   }
 
   // repeated .google.protobuf.Option options = 6;
-  for (unsigned int i = 0, n = this->options_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->options_size()); i < n; i++) {
     ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
-      6, this->options(i), output);
+      6, this->options(static_cast<int>(i)), output);
   }
 
   // .google.protobuf.Syntax syntax = 7;
@@ -1220,12 +1257,15 @@ void Method::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Method::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic;  // Unused
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Method)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.name");
     target =
@@ -1236,7 +1276,7 @@ void Method::SerializeWithCachedSizes(
   // string request_type_url = 2;
   if (this->request_type_url().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->request_type_url().data(), this->request_type_url().length(),
+      this->request_type_url().data(), static_cast<int>(this->request_type_url().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.request_type_url");
     target =
@@ -1252,7 +1292,7 @@ void Method::SerializeWithCachedSizes(
   // string response_type_url = 4;
   if (this->response_type_url().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->response_type_url().data(), this->response_type_url().length(),
+      this->response_type_url().data(), static_cast<int>(this->response_type_url().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Method.response_type_url");
     target =
@@ -1266,10 +1306,11 @@ void Method::SerializeWithCachedSizes(
   }
 
   // repeated .google.protobuf.Option options = 6;
-  for (unsigned int i = 0, n = this->options_size(); i < n; i++) {
+  for (unsigned int i = 0,
+      n = static_cast<unsigned int>(this->options_size()); i < n; i++) {
     target = ::google::protobuf::internal::WireFormatLite::
       InternalWriteMessageNoVirtualToArray(
-        6, this->options(i), false, target);
+        6, this->options(static_cast<int>(i)), deterministic, target);
   }
 
   // .google.protobuf.Syntax syntax = 7;
@@ -1288,12 +1329,12 @@ size_t Method::ByteSizeLong() const {
 
   // repeated .google.protobuf.Option options = 6;
   {
-    unsigned int count = this->options_size();
+    unsigned int count = static_cast<unsigned int>(this->options_size());
     total_size += 1UL * count;
     for (unsigned int i = 0; i < count; i++) {
       total_size +=
         ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
-          this->options(i));
+          this->options(static_cast<int>(i)));
     }
   }
 
@@ -1360,6 +1401,9 @@ void Method::MergeFrom(const Method& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.Method)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   options_.MergeFrom(from.options_);
   if (from.name().size() > 0) {
 
@@ -1407,7 +1451,7 @@ void Method::Swap(Method* other) {
   InternalSwap(other);
 }
 void Method::InternalSwap(Method* other) {
-  options_.UnsafeArenaSwap(&other->options_);
+  options_.InternalSwap(&other->options_);
   name_.Swap(&other->name_);
   request_type_url_.Swap(&other->request_type_url_);
   response_type_url_.Swap(&other->response_type_url_);
@@ -1419,7 +1463,7 @@ void Method::InternalSwap(Method* other) {
 
 ::google::protobuf::Metadata Method::GetMetadata() const {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[1];
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -1447,6 +1491,7 @@ void Method::set_name(::std::string&& value) {
 }
 #endif
 void Method::set_name(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Method.name)
@@ -1499,6 +1544,7 @@ void Method::set_request_type_url(::std::string&& value) {
 }
 #endif
 void Method::set_request_type_url(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   request_type_url_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Method.request_type_url)
@@ -1565,6 +1611,7 @@ void Method::set_response_type_url(::std::string&& value) {
 }
 #endif
 void Method::set_response_type_url(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   response_type_url_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Method.response_type_url)
@@ -1709,7 +1756,7 @@ void Mixin::SetCachedSize(int size) const {
 }
 const ::google::protobuf::Descriptor* Mixin::descriptor() {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[2].descriptor;
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages].descriptor;
 }
 
 const Mixin& Mixin::default_instance() {
@@ -1748,7 +1795,7 @@ bool Mixin::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_name()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->name().data(), this->name().length(),
+            this->name().data(), static_cast<int>(this->name().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Mixin.name"));
         } else {
@@ -1764,7 +1811,7 @@ bool Mixin::MergePartialFromCodedStream(
           DO_(::google::protobuf::internal::WireFormatLite::ReadString(
                 input, this->mutable_root()));
           DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->root().data(), this->root().length(),
+            this->root().data(), static_cast<int>(this->root().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "google.protobuf.Mixin.root"));
         } else {
@@ -1797,10 +1844,13 @@ failure:
 void Mixin::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // @@protoc_insertion_point(serialize_start:google.protobuf.Mixin)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Mixin.name");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1810,7 +1860,7 @@ void Mixin::SerializeWithCachedSizes(
   // string root = 2;
   if (this->root().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->root().data(), this->root().length(),
+      this->root().data(), static_cast<int>(this->root().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Mixin.root");
     ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
@@ -1822,12 +1872,15 @@ void Mixin::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* Mixin::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
-  (void)deterministic;  // Unused
+  (void)deterministic; // Unused
   // @@protoc_insertion_point(serialize_to_array_start:google.protobuf.Mixin)
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   // string name = 1;
   if (this->name().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->name().data(), this->name().length(),
+      this->name().data(), static_cast<int>(this->name().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Mixin.name");
     target =
@@ -1838,7 +1891,7 @@ void Mixin::SerializeWithCachedSizes(
   // string root = 2;
   if (this->root().size() > 0) {
     ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->root().data(), this->root().length(),
+      this->root().data(), static_cast<int>(this->root().length()),
       ::google::protobuf::internal::WireFormatLite::SERIALIZE,
       "google.protobuf.Mixin.root");
     target =
@@ -1894,6 +1947,9 @@ void Mixin::MergeFrom(const Mixin& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:google.protobuf.Mixin)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::google::protobuf::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
   if (from.name().size() > 0) {
 
     name_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.name_);
@@ -1934,7 +1990,7 @@ void Mixin::InternalSwap(Mixin* other) {
 
 ::google::protobuf::Metadata Mixin::GetMetadata() const {
   protobuf_google_2fprotobuf_2fapi_2eproto::protobuf_AssignDescriptorsOnce();
-  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[2];
+  return protobuf_google_2fprotobuf_2fapi_2eproto::file_level_metadata[kIndexInFileMessages];
 }
 
 #if PROTOBUF_INLINE_NOT_IN_HEADERS
@@ -1962,6 +2018,7 @@ void Mixin::set_name(::std::string&& value) {
 }
 #endif
 void Mixin::set_name(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   name_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Mixin.name)
@@ -2014,6 +2071,7 @@ void Mixin::set_root(::std::string&& value) {
 }
 #endif
 void Mixin::set_root(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
   
   root_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
   // @@protoc_insertion_point(field_set_char:google.protobuf.Mixin.root)

@@ -351,6 +351,7 @@ message FileOptions {
   optional bool cc_generic_services = 16 [default=false];
   optional bool java_generic_services = 17 [default=false];
   optional bool py_generic_services = 18 [default=false];
+  optional bool php_generic_services = 19 [default=false];
 
   // Is this file deprecated?
   // Depending on the target platform, this can emit Deprecated annotations
@@ -375,6 +376,15 @@ message FileOptions {
   // defined. When this options is provided, they will use this value instead
   // to prefix the types/symbols defined.
   optional string swift_prefix = 39;
+
+  // Sets the php class prefix which is prepended to all php generated classes
+  // from this .proto. Default is empty.
+  optional string php_class_prefix = 40;
+
+  // Use this option to change the namespace of php generated classes. Default
+  // is empty. When this option is empty, the package name will be used for
+  // determining the namespace.
+  optional string php_namespace = 41;
 
   // The parser stores options it doesn't recognize here. See above.
   repeated UninterpretedOption uninterpreted_option = 999;
@@ -441,7 +451,7 @@ message MessageOptions {
   optional bool map_entry = 7;
 
   reserved 8;  // javalite_serializable
-
+  reserved 9;  // javanano_as_lite
 
   // The parser stores options it doesn't recognize here. See above.
   repeated UninterpretedOption uninterpreted_option = 999;
@@ -561,6 +571,7 @@ message EnumOptions {
   // is a formalization for deprecating enums.
   optional bool deprecated = 3 [default=false];
 
+  reserved 5;  // javanano_as_lite
 
   // The parser stores options it doesn't recognize here. See above.
   repeated UninterpretedOption uninterpreted_option = 999;
