@@ -268,6 +268,11 @@ namespace Google.Protobuf
         public int RecursionLimit { get { return recursionLimit; } }
 
         /// <summary>
+        /// Internal-only property; when set to true, unknown fields will be discarded while parsing.
+        /// </summary>
+        internal bool DiscardUnknownFields { get; set; }
+
+        /// <summary>
         /// Disposes of this instance, potentially closing any underlying stream.
         /// </summary>
         /// <remarks>
@@ -424,7 +429,10 @@ namespace Google.Protobuf
             }
         }
 
-        private void SkipGroup(uint startGroupTag)
+        /// <summary>
+        /// Skip a group.
+        /// </summary>
+        internal void SkipGroup(uint startGroupTag)
         {
             // Note: Currently we expect this to be the way that groups are read. We could put the recursion
             // depth changes into the ReadTag method instead, potentially...
@@ -1270,7 +1278,6 @@ namespace Google.Protobuf
                 }
             }
         }
-
         #endregion
     }
 }
