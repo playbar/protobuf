@@ -1,0 +1,21 @@
+syntax = "proto3";
+//msg.proto
+package demo;
+message data_t
+{
+    int32 data_int_info = 1;
+    string name = 2;
+}
+message kv_t
+{
+    int32 key = 1;
+    string value = 2;
+}
+message msg
+{
+    int32 int_info = 1;
+    string string_info = 2;
+    data_t data_info = 3;
+    string opt_info = 4; //can select
+    repeated kv_t vector_info = 5;
+}

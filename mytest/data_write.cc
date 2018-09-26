@@ -65,18 +65,18 @@ int main(int argc, char* argv[]) {
   // compatible with the version of the headers we compiled against.
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-  if (argc != 2) {
-    cerr << "Usage:  " << argv[0] << " ADDRESS_BOOK_FILE" << endl;
-    return -1;
-  }
-
+//  if (argc != 2) {
+//    cerr << "Usage:  " << argv[0] << " ADDRESS_BOOK_FILE" << endl;
+//    return -1;
+//  }
+  const char *pname = "data.dat";
   tutorial::AddressBook address_book;
 
   {
     // Read the existing address book.
-    fstream input(argv[1], ios::in | ios::binary);
+    fstream input(pname, ios::in | ios::binary);
     if (!input) {
-      cout << argv[1] << ": File not found.  Creating a new file." << endl;
+      cout << pname << ": File not found.  Creating a new file." << endl;
     } else if (!address_book.ParseFromIstream(&input)) {
       cerr << "Failed to parse address book." << endl;
       return -1;
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
 
   {
     // Write the new address book back to disk.
-    fstream output(argv[1], ios::out | ios::trunc | ios::binary);
+    fstream output(pname, ios::out | ios::trunc | ios::binary);
     if (!address_book.SerializeToOstream(&output)) {
       cerr << "Failed to write address book." << endl;
       return -1;

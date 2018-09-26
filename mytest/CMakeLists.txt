@@ -24,16 +24,16 @@ if(MSVC AND protobuf_MSVC_STATIC_RUNTIME)
   endforeach()
 endif()
 
-set(add_data_SRCS add_data.cc data.pb.cc)
-add_executable(add_data ${add_data_SRCS})
-target_include_directories(add_data   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-target_link_libraries(add_data protobuf::libprotobuf)
+set(data_write_SRCS data_write.cc data.pb.cc)
+add_executable(data_write ${data_write_SRCS})
+target_include_directories(data_write   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(data_write protobuf::libprotobuf)
 
 
-set(list_data_SRCS list_data.cc data.pb.cc)
-add_executable(list_data ${list_data_SRCS})
-target_include_directories(list_data   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-target_link_libraries(list_data protobuf::libprotobuf)
+set(data_read_SRCS data_read.cc data.pb.cc)
+add_executable(data_read ${data_read_SRCS})
+target_include_directories(data_read   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(data_read protobuf::libprotobuf)
 
 
 set(reader_SRCS reader.cpp helloworld.pb.cc)
@@ -46,6 +46,11 @@ add_executable(writer ${writer_SRCS})
 target_include_directories(writer   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
 target_link_libraries(writer protobuf::libprotobuf)
 
+
+set(msg_SRCS msg.cpp msg.pb.cc)
+add_executable(msg ${msg_SRCS})
+target_include_directories(msg   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(msg protobuf::libprotobuf)
 
 #foreach(example add_data list_data)
 #  set(${example}_SRCS ${example}.cc data.pb.cc)
