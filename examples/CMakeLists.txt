@@ -1,11 +1,11 @@
 # Minimum CMake required
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.8)
 
 # Project
 project(protobuf-examples)
 
 # Find required protobuf package
-find_package(protobuf CONFIG REQUIRED)
+#find_package(protobuf CONFIG REQUIRED)
 
 if(protobuf_VERBOSE)
   message(STATUS "Using Protocol Buffers ${Protobuf_VERSION}")
@@ -42,7 +42,7 @@ foreach(example add_person list_people)
     target_link_libraries(${executable_name} ${PROTOBUF_LIBRARIES})
   else()
     target_link_libraries(${executable_name} protobuf::libprotobuf)
-    protobuf_generate(TARGET ${executable_name})
+#    protobuf_generate(TARGET ${executable_name})
   endif()
 
 endforeach()
