@@ -24,25 +24,48 @@ if(MSVC AND protobuf_MSVC_STATIC_RUNTIME)
   endforeach()
 endif()
 
-foreach(example add_data list_data)
-  set(${example}_SRCS ${example}.cc data.pb.cc)
-  set(${example}_PROTOS data.proto)
+set(add_data_SRCS add_data.cc data.pb.cc)
+add_executable(add_data ${add_data_SRCS})
+target_include_directories(add_data   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(add_data protobuf::libprotobuf)
 
-  #Code Generation
-  if(protobuf_MODULE_COMPATIBLE) #Legacy Support
-    protobuf_generate_cpp(${example}_PROTO_SRCS ${example}_PROTO_HDRS ${${example}_PROTOS})
-    list(APPEND ${example}_SRCS ${${example}_PROTO_SRCS} ${${example}_PROTO_HDRS})
-  endif()
 
-  #Executable setup
-  set(executable_name ${example}_cpp)
-  add_executable(${executable_name} ${${example}_SRCS} ${${example}_PROTOS})
-  if(protobuf_MODULE_COMPATIBLE) #Legacy mode
-    target_include_directories(${executable_name} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
-    target_link_libraries(${executable_name} ${PROTOBUF_LIBRARIES})
-  else()
-    target_link_libraries(${executable_name} protobuf::libprotobuf)
-#    protobuf_generate(TARGET ${executable_name})
-  endif()
+set(list_data_SRCS list_data.cc data.pb.cc)
+add_executable(list_data ${list_data_SRCS})
+target_include_directories(list_data   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(list_data protobuf::libprotobuf)
 
-endforeach()
+
+set(reader_SRCS reader.cpp lm.helloworld.pb.cc)
+add_executable(reader ${reader_SRCS})
+target_include_directories(reader   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(reader protobuf::libprotobuf)
+
+set(writer_SRCS writer.cpp lm.helloworld.pb.cc)
+add_executable(writer ${writer_SRCS})
+target_include_directories(writer   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+target_link_libraries(writer protobuf::libprotobuf)
+
+
+#foreach(example add_data list_data)
+#  set(${example}_SRCS ${example}.cc data.pb.cc)
+#  set(${example}_PROTOS data.proto)
+#
+#  #Code Generation
+#  if(protobuf_MODULE_COMPATIBLE) #Legacy Support
+#    protobuf_generate_cpp(${example}_PROTO_SRCS ${example}_PROTO_HDRS ${${example}_PROTOS})
+#    list(APPEND ${example}_SRCS ${${example}_PROTO_SRCS} ${${example}_PROTO_HDRS})
+#  endif()
+#
+#  #Executable setup
+#  set(executable_name ${example}_cpp)
+#  add_executable(${executable_name} ${${example}_SRCS} ${${example}_PROTOS})
+#  if(protobuf_MODULE_COMPATIBLE) #Legacy mode
+#    target_include_directories(${executable_name} PUBLIC ${PROTOBUF_INCLUDE_DIRS})
+#    target_link_libraries(${executable_name} ${PROTOBUF_LIBRARIES})
+#  else()
+#    target_link_libraries(${executable_name} protobuf::libprotobuf)
+##    protobuf_generate(TARGET ${executable_name})
+#  endif()
+#
+#endforeach()
