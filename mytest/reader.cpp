@@ -8,24 +8,23 @@
 using namespace std;
 
 void ListMsg(const lm::helloworld & msg) {
-    cout << msg.id()  << endl;
-    cout << msg.str() << endl;
-    cout << msg.opt() << endl;
+    msg.PrintDebugString();
+    cout << msg.id()  << ", "<< msg.str() << ", "<< msg.opt() << endl;
 }
 
 int main(int argc, char* argv[]) {
 
-    lm::helloworld msg1;
 
-    {
-        fstream input("./log", ios::in | ios::binary);
+    fstream input("./log", ios::in | ios::binary);
+
+    for( int i = 0; i < 100; ++i ) {
+        lm::helloworld msg1;
         if (!msg1.ParseFromIstream(&input)) {
             cerr << "Failed to parse address book." << endl;
             return -1;
         }
-        input.close();
+        ListMsg(msg1);
     }
-
-    ListMsg(msg1);
+    input.close();
 }
 
