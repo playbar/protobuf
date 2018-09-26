@@ -2,7 +2,9 @@
 // Created by hou guoli on 2018/9/26.
 //
 
-#include "lm.helloworld.pb.h"
+// ./protoc36 -I=src/ --cpp_out=mytest/ --proto_path=mytest helloworld.proto
+
+#include "helloworld.pb.h"
 #include "iostream"
 #include <fstream>
 using namespace std;

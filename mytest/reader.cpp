@@ -2,7 +2,7 @@
 // Created by hou guoli on 2018/9/26.
 //
 
-#include "lm.helloworld.pb.h"
+#include "helloworld.pb.h"
 #include "iostream"
 #include "fstream"
 using namespace std;

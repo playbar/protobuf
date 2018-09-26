@@ -36,12 +36,12 @@ target_include_directories(list_data   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
 target_link_libraries(list_data protobuf::libprotobuf)
 
 
-set(reader_SRCS reader.cpp lm.helloworld.pb.cc)
+set(reader_SRCS reader.cpp helloworld.pb.cc)
 add_executable(reader ${reader_SRCS})
 target_include_directories(reader   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
 target_link_libraries(reader protobuf::libprotobuf)
 
-set(writer_SRCS writer.cpp lm.helloworld.pb.cc)
+set(writer_SRCS writer.cpp helloworld.pb.cc)
 add_executable(writer ${writer_SRCS})
 target_include_directories(writer   PUBLIC ${PROTOBUF_INCLUDE_DIRS})
 target_link_libraries(writer protobuf::libprotobuf)
