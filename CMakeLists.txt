@@ -9,3 +9,9 @@ add_definitions(-DNDEBUG)
 
 add_subdirectory(cmake)
 add_subdirectory(examples)
+add_subdirectory(mytest)
+
+
+#./protoc36 -I=src/ --cpp_out=examples/ --proto_path=examples addressbook.proto
+
+
