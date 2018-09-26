@@ -1740,9 +1740,9 @@ namespace UnitTest.Issues.TestProtos {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public ComplexOptionType2(ComplexOptionType2 other) : this() {
-      Bar = other.bar_ != null ? other.Bar.Clone() : null;
+      bar_ = other.bar_ != null ? other.bar_.Clone() : null;
       baz_ = other.baz_;
-      Fred = other.fred_ != null ? other.Fred.Clone() : null;
+      fred_ = other.fred_ != null ? other.fred_.Clone() : null;
       barney_ = other.barney_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1879,7 +1879,7 @@ namespace UnitTest.Issues.TestProtos {
       }
       if (other.bar_ != null) {
         if (bar_ == null) {
-          bar_ = new global::UnitTest.Issues.TestProtos.ComplexOptionType1();
+          Bar = new global::UnitTest.Issues.TestProtos.ComplexOptionType1();
         }
         Bar.MergeFrom(other.Bar);
       }
@@ -1888,7 +1888,7 @@ namespace UnitTest.Issues.TestProtos {
       }
       if (other.fred_ != null) {
         if (fred_ == null) {
-          fred_ = new global::UnitTest.Issues.TestProtos.ComplexOptionType2.Types.ComplexOptionType4();
+          Fred = new global::UnitTest.Issues.TestProtos.ComplexOptionType2.Types.ComplexOptionType4();
         }
         Fred.MergeFrom(other.Fred);
       }
@@ -1906,9 +1906,9 @@ namespace UnitTest.Issues.TestProtos {
             break;
           case 10: {
             if (bar_ == null) {
-              bar_ = new global::UnitTest.Issues.TestProtos.ComplexOptionType1();
+              Bar = new global::UnitTest.Issues.TestProtos.ComplexOptionType1();
             }
-            input.ReadMessage(bar_);
+            input.ReadMessage(Bar);
             break;
           }
           case 16: {
@@ -1917,9 +1917,9 @@ namespace UnitTest.Issues.TestProtos {
           }
           case 26: {
             if (fred_ == null) {
-              fred_ = new global::UnitTest.Issues.TestProtos.ComplexOptionType2.Types.ComplexOptionType4();
+              Fred = new global::UnitTest.Issues.TestProtos.ComplexOptionType2.Types.ComplexOptionType4();
             }
-            input.ReadMessage(fred_);
+            input.ReadMessage(Fred);
             break;
           }
           case 34: {
@@ -2331,7 +2331,7 @@ namespace UnitTest.Issues.TestProtos {
     public Aggregate(Aggregate other) : this() {
       i_ = other.i_;
       s_ = other.s_;
-      Sub = other.sub_ != null ? other.Sub.Clone() : null;
+      sub_ = other.sub_ != null ? other.sub_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2462,7 +2462,7 @@ namespace UnitTest.Issues.TestProtos {
       }
       if (other.sub_ != null) {
         if (sub_ == null) {
-          sub_ = new global::UnitTest.Issues.TestProtos.Aggregate();
+          Sub = new global::UnitTest.Issues.TestProtos.Aggregate();
         }
         Sub.MergeFrom(other.Sub);
       }
@@ -2487,9 +2487,9 @@ namespace UnitTest.Issues.TestProtos {
           }
           case 26: {
             if (sub_ == null) {
-              sub_ = new global::UnitTest.Issues.TestProtos.Aggregate();
+              Sub = new global::UnitTest.Issues.TestProtos.Aggregate();
             }
-            input.ReadMessage(sub_);
+            input.ReadMessage(Sub);
             break;
           }
         }

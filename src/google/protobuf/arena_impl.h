@@ -33,22 +33,20 @@
 #ifndef GOOGLE_PROTOBUF_ARENA_IMPL_H__
 #define GOOGLE_PROTOBUF_ARENA_IMPL_H__
 
+#include <atomic>
 #include <limits>
 
-#include <google/protobuf/stubs/atomic_sequence_num.h>
-#include <google/protobuf/stubs/atomicops.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/logging.h>
-#include <google/protobuf/stubs/mutex.h>
-
-#include <google/protobuf/stubs/port.h>
 
 #ifdef ADDRESS_SANITIZER
 #include <sanitizer/asan_interface.h>
 #endif  // ADDRESS_SANITIZER
 
-namespace google {
+#include <google/protobuf/port_def.inc>
 
+
+namespace google {
 namespace protobuf {
 namespace internal {
 
@@ -63,7 +61,7 @@ inline size_t AlignUpTo8(size_t n) {
 // in turn would be templates, which will/cannot happen. However separating
 // the memory allocation part from the cruft of the API users expect we can
 // use #ifdef the select the best implementation based on hardware / OS.
-class LIBPROTOBUF_EXPORT ArenaImpl {
+class PROTOBUF_EXPORT ArenaImpl {
  public:
   struct Options {
     size_t start_block_size;
@@ -139,7 +137,7 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
   class Block;
 
   // A thread-unsafe Arena that can only be used within its owning thread.
-  class LIBPROTOBUF_EXPORT SerialArena {
+  class PROTOBUF_EXPORT SerialArena {
    public:
     // The allocate/free methods here are a little strange, since SerialArena is
     // allocated inside a Block which it also manages.  This is to avoid doing
@@ -159,7 +157,7 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
     void* AllocateAligned(size_t n) {
       GOOGLE_DCHECK_EQ(internal::AlignUpTo8(n), n);  // Must be already aligned.
       GOOGLE_DCHECK_GE(limit_, ptr_);
-      if (GOOGLE_PREDICT_FALSE(static_cast<size_t>(limit_ - ptr_) < n)) {
+      if (PROTOBUF_PREDICT_FALSE(static_cast<size_t>(limit_ - ptr_) < n)) {
         return AllocateAlignedFallback(n);
       }
       void* ret = ptr_;
@@ -171,7 +169,7 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
     }
 
     void AddCleanup(void* elem, void (*cleanup)(void*)) {
-      if (GOOGLE_PREDICT_FALSE(cleanup_ptr_ == cleanup_limit_)) {
+      if (PROTOBUF_PREDICT_FALSE(cleanup_ptr_ == cleanup_limit_)) {
         AddCleanupFallback(elem, cleanup);
         return;
       }
@@ -214,7 +212,7 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
 
   // Blocks are variable length malloc-ed objects.  The following structure
   // describes the common header for all blocks.
-  class LIBPROTOBUF_EXPORT Block {
+  class PROTOBUF_EXPORT Block {
    public:
     Block(size_t size, Block* next);
 
@@ -248,7 +246,7 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
     int64 last_lifecycle_id_seen;
     SerialArena* last_serial_arena;
   };
-  static google::protobuf::internal::SequenceNumber lifecycle_id_generator_;
+  static std::atomic<int64> lifecycle_id_generator_;
 #if defined(GOOGLE_PROTOBUF_NO_THREADLOCAL)
   // Android ndk does not support GOOGLE_THREAD_LOCAL keyword so we use a custom thread
   // local storage class we implemented.
@@ -277,12 +275,15 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
     // TODO(haberman): evaluate whether we would gain efficiency by getting rid
     // of hint_.  It's the only write we do to ArenaImpl in the allocation path,
     // which will dirty the cache line.
-    google::protobuf::internal::Release_Store(&hint_, reinterpret_cast<google::protobuf::internal::AtomicWord>(serial));
+
+    hint_.store(serial, std::memory_order_release);
   }
 
-  google::protobuf::internal::AtomicWord threads_;          // Pointer to a linked list of SerialArena.
-  google::protobuf::internal::AtomicWord hint_;             // Fast thread-local block access
-  google::protobuf::internal::AtomicWord space_allocated_;  // Sum of sizes of all allocated blocks.
+
+  std::atomic<SerialArena*>
+      threads_;                     // Pointer to a linked list of SerialArena.
+  std::atomic<SerialArena*> hint_;  // Fast thread-local block access
+  std::atomic<size_t> space_allocated_;  // Total size of all allocated blocks.
 
   Block *initial_block_;     // If non-NULL, points to the block that came from
                              // user data.
@@ -297,22 +298,26 @@ class LIBPROTOBUF_EXPORT ArenaImpl {
   Options options_;
 
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(ArenaImpl);
+  // All protos have pointers back to the arena hence Arena must have
+  // pointer stability.
+  ArenaImpl(ArenaImpl&&) = delete;
+  ArenaImpl& operator=(ArenaImpl&&) = delete;
 
  public:
   // kBlockHeaderSize is sizeof(Block), aligned up to the nearest multiple of 8
   // to protect the invariant that pos is always at a multiple of 8.
   static const size_t kBlockHeaderSize = (sizeof(Block) + 7) & -8;
   static const size_t kSerialArenaSize = (sizeof(SerialArena) + 7) & -8;
-#if LANG_CXX11
   static_assert(kBlockHeaderSize % 8 == 0,
                 "kBlockHeaderSize must be a multiple of 8.");
   static_assert(kSerialArenaSize % 8 == 0,
                 "kSerialArenaSize must be a multiple of 8.");
-#endif
 };
 
 }  // namespace internal
 }  // namespace protobuf
-
 }  // namespace google
+
+#include <google/protobuf/port_undef.inc>
+
 #endif  // GOOGLE_PROTOBUF_ARENA_IMPL_H__

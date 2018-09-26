@@ -8,9 +8,13 @@
 #endif
 
 #if GPB_USE_PROTOBUF_FRAMEWORK_IMPORTS
- #import <Protobuf/GPBProtocolBuffers.h>
+ #import <Protobuf/GPBDescriptor.h>
+ #import <Protobuf/GPBMessage.h>
+ #import <Protobuf/GPBRootObject.h>
 #else
- #import "GPBProtocolBuffers.h"
+ #import "GPBDescriptor.h"
+ #import "GPBMessage.h"
+ #import "GPBRootObject.h"
 #endif
 
 #if GOOGLE_PROTOBUF_OBJC_VERSION < 30002
@@ -136,7 +140,8 @@ typedef GPB_ENUM(GPBAny_FieldNumber) {
 
 /**
  * A URL/resource name that uniquely identifies the type of the serialized
- * protocol buffer message. The last segment of the URL's path must represent
+ * protocol buffer message. This string must contain at least
+ * one "/" character. The last segment of the URL's path must represent
  * the fully qualified name of the type (as in
  * `path/google.protobuf.Duration`). The name should be in a canonical form
  * (e.g., leading "." is not accepted).

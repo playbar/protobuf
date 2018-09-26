@@ -73,6 +73,7 @@ goog.require('proto.jspb.test.Simple1');
 goog.require('proto.jspb.test.Simple2');
 goog.require('proto.jspb.test.SpecialCases');
 goog.require('proto.jspb.test.TestClone');
+goog.require('proto.jspb.test.TestCloneExtension');
 goog.require('proto.jspb.test.TestEndsWithBytes');
 goog.require('proto.jspb.test.TestGroup');
 goog.require('proto.jspb.test.TestGroup1');
@@ -416,6 +417,18 @@ describe('Message test suite', function() {
         ['hi', {100: [{200: 'a'}]}], ['hi',,, {100: [{200: 'a'}]}]));
     assertTrue(jspb.Message.compareFields(
         ['hi',,, {100: [{200: 'a'}]}], ['hi', {100: [{200: 'a'}]}]));
+  });
+
+  it('testEqualsNonFinite', function() {
+    assertTrue(jspb.Message.compareFields(NaN, NaN));
+    assertTrue(jspb.Message.compareFields(NaN, 'NaN'));
+    assertTrue(jspb.Message.compareFields('NaN', NaN));
+    assertTrue(jspb.Message.compareFields(Infinity, Infinity));
+    assertTrue(jspb.Message.compareFields(Infinity, 'Infinity'));
+    assertTrue(jspb.Message.compareFields('-Infinity', -Infinity));
+    assertTrue(jspb.Message.compareFields([NaN], ['NaN']));
+    assertFalse(jspb.Message.compareFields(undefined, NaN));
+    assertFalse(jspb.Message.compareFields(NaN, undefined));
   });
 
   it('testToMap', function() {

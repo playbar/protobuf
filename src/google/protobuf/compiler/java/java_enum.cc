@@ -36,12 +36,12 @@
 #include <string>
 
 #include <google/protobuf/compiler/java/java_context.h>
-#include <google/protobuf/compiler/java/java_enum.h>
 #include <google/protobuf/compiler/java/java_doc_comment.h>
+#include <google/protobuf/compiler/java/java_enum.h>
 #include <google/protobuf/compiler/java/java_helpers.h>
 #include <google/protobuf/compiler/java/java_name_resolver.h>
-#include <google/protobuf/io/printer.h>
 #include <google/protobuf/descriptor.pb.h>
+#include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
 
 namespace google {
@@ -190,10 +190,9 @@ void EnumGenerator::Generate(io::Printer* printer) {
   printer->Indent();
 
   for (int i = 0; i < canonical_values_.size(); i++) {
-    printer->Print(
-      "case $number$: return $name$;\n",
-      "name", canonical_values_[i]->name(),
-      "number", SimpleItoa(canonical_values_[i]->number()));
+    printer->Print("case $number$: return $name$;\n", "name",
+                   canonical_values_[i]->name(), "number",
+                   SimpleItoa(canonical_values_[i]->number()));
   }
 
   printer->Outdent();
@@ -242,19 +241,22 @@ void EnumGenerator::Generate(io::Printer* printer) {
       // extensions in both the mutable and immutable cases. (In the mutable api
       // this is accomplished by attempting to load the immutable outer class).
       printer->Print(
-        "  return $file$.getDescriptor().getEnumTypes().get($index$);\n",
-        "file", name_resolver_->GetClassName(descriptor_->file(),
-                                             immutable_api_),
-        "index", SimpleItoa(descriptor_->index()));
+          "  return $file$.getDescriptor().getEnumTypes().get($index$);\n",
+          "file",
+          name_resolver_->GetClassName(descriptor_->file(), immutable_api_),
+          "index", SimpleItoa(descriptor_->index()));
     } else {
       printer->Print(
           "  return $parent$.$descriptor$.getEnumTypes().get($index$);\n",
-          "parent", name_resolver_->GetClassName(descriptor_->containing_type(),
-                                                 immutable_api_),
-          "descriptor", descriptor_->containing_type()->options()
-                        .no_standard_descriptor_accessor()
-                        ? "getDefaultInstance().getDescriptorForType()"
-                        : "getDescriptor()",
+          "parent",
+          name_resolver_->GetClassName(descriptor_->containing_type(),
+                                       immutable_api_),
+          "descriptor",
+          descriptor_->containing_type()
+                  ->options()
+                  .no_standard_descriptor_accessor()
+              ? "getDefaultInstance().getDescriptorForType()"
+              : "getDescriptor()",
           "index", SimpleItoa(descriptor_->index()));
     }
 

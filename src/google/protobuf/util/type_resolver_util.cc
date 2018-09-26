@@ -37,6 +37,7 @@
 #include <google/protobuf/util/internal/utility.h>
 #include <google/protobuf/util/type_resolver.h>
 #include <google/protobuf/stubs/strutil.h>
+
 #include <google/protobuf/stubs/status.h>
 
 namespace google {
@@ -60,7 +61,7 @@ class DescriptorPoolTypeResolver : public TypeResolver {
                              const DescriptorPool* pool)
       : url_prefix_(url_prefix), pool_(pool) {}
 
-  Status ResolveMessageType(const string& type_url, Type* type) {
+  Status ResolveMessageType(const string& type_url, Type* type) override {
     string type_name;
     Status status = ParseTypeUrl(type_url, &type_name);
     if (!status.ok()) {
@@ -75,7 +76,7 @@ class DescriptorPoolTypeResolver : public TypeResolver {
     return Status();
   }
 
-  Status ResolveEnumType(const string& type_url, Enum* enum_type) {
+  Status ResolveEnumType(const string& type_url, Enum* enum_type) override {
     string type_name;
     Status status = ParseTypeUrl(type_url, &type_name);
     if (!status.ok()) {
@@ -95,11 +96,6 @@ class DescriptorPoolTypeResolver : public TypeResolver {
     type->Clear();
     type->set_name(descriptor->full_name());
     for (int i = 0; i < descriptor->field_count(); ++i) {
-      const FieldDescriptor* field = descriptor->field(i);
-      if (field->type() == FieldDescriptor::TYPE_GROUP) {
-        // Group fields cannot be represented with Type. We discard them.
-        continue;
-      }
       ConvertFieldDescriptor(descriptor->field(i), type->add_fields());
     }
     for (int i = 0; i < descriptor->oneof_decl_count(); ++i) {
@@ -141,7 +137,8 @@ class DescriptorPoolTypeResolver : public TypeResolver {
     if (descriptor->has_default_value()) {
       field->set_default_value(DefaultValueAsString(descriptor));
     }
-    if (descriptor->type() == FieldDescriptor::TYPE_MESSAGE) {
+    if (descriptor->type() == FieldDescriptor::TYPE_MESSAGE ||
+        descriptor->type() == FieldDescriptor::TYPE_GROUP) {
       field->set_type_url(GetTypeUrl(descriptor->message_type()));
     } else if (descriptor->type() == FieldDescriptor::TYPE_ENUM) {
       field->set_type_url(GetTypeUrl(descriptor->enum_type()));
@@ -183,9 +180,10 @@ class DescriptorPoolTypeResolver : public TypeResolver {
 
   Status ParseTypeUrl(const string& type_url, string* type_name) {
     if (type_url.substr(0, url_prefix_.size() + 1) != url_prefix_ + "/") {
-      return Status(INVALID_ARGUMENT,
-                    StrCat("Invalid type URL, type URLs must be of the form '",
-                           url_prefix_, "/<typename>', got: ", type_url));
+      return Status(
+          INVALID_ARGUMENT,
+          StrCat("Invalid type URL, type URLs must be of the form '",
+                       url_prefix_, "/<typename>', got: ", type_url));
     }
     *type_name = type_url.substr(url_prefix_.size() + 1);
     return Status();

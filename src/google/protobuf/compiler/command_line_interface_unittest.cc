@@ -40,9 +40,6 @@
 #include <unistd.h>
 #endif
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <vector>
 
 #include <google/protobuf/stubs/stringprintf.h>
@@ -52,6 +49,7 @@
 #include <google/protobuf/compiler/subprocess.h>
 #include <google/protobuf/compiler/code_generator.h>
 #include <google/protobuf/compiler/command_line_interface.h>
+#include <google/protobuf/test_util2.h>
 #include <google/protobuf/unittest.pb.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
@@ -344,7 +342,7 @@ void CommandLineInterfaceTest::RunWithArgs(std::vector<string> args) {
     }
   }
 
-  google::protobuf::scoped_array<const char * > argv(new const char* [args.size()]);
+  std::unique_ptr<const char * []> argv(new const char* [args.size()]);
 
   for (int i = 0; i < args.size(); i++) {
     args[i] = StringReplace(args[i], "$tmpdir", temp_directory_, true);
@@ -2287,18 +2285,17 @@ class EncodeDecodeTest : public testing::TestWithParam<EncodeDecodeTestMode> {
     SplitStringUsing(command, " ", &args);
     switch (GetParam()) {
       case PROTO_PATH:
-        args.push_back("--proto_path=" + TestSourceDir());
+        args.push_back("--proto_path=" + TestUtil::TestSourceDir());
         break;
       case DESCRIPTOR_SET_IN:
-        args.push_back(StrCat(
-            "--descriptor_set_in=",
-            unittest_proto_descriptor_set_filename_));
+        args.push_back(StrCat("--descriptor_set_in=",
+                                    unittest_proto_descriptor_set_filename_));
         break;
       default:
         ADD_FAILURE() << "unexpected EncodeDecodeTestMode: " << GetParam();
     }
 
-    google::protobuf::scoped_array<const char * > argv(new const char* [args.size()]);
+    std::unique_ptr<const char * []> argv(new const char* [args.size()]);
     for (int i = 0; i < args.size(); i++) {
       argv[i] = args[i].c_str();
     }
@@ -2372,30 +2369,34 @@ class EncodeDecodeTest : public testing::TestWithParam<EncodeDecodeTestMode> {
 };
 
 TEST_P(EncodeDecodeTest, Encode) {
-  RedirectStdinFromFile(TestSourceDir() + "/google/protobuf/"
-    "testdata/text_format_unittest_data_oneof_implemented.txt");
-  EXPECT_TRUE(Run("google/protobuf/unittest.proto "
-                  "--encode=protobuf_unittest.TestAllTypes"));
-  ExpectStdoutMatchesBinaryFile(TestSourceDir() +
-    "/google/protobuf/testdata/golden_message_oneof_implemented");
+  RedirectStdinFromFile(TestUtil::GetTestDataPath(
+      "net/proto2/internal/"
+      "testdata/text_format_unittest_data_oneof_implemented.txt"));
+  EXPECT_TRUE(
+      Run(TestUtil::MaybeTranslatePath("net/proto2/internal/unittest.proto") +
+          " --encode=protobuf_unittest.TestAllTypes"));
+  ExpectStdoutMatchesBinaryFile(TestUtil::GetTestDataPath(
+      "net/proto2/internal/testdata/golden_message_oneof_implemented"));
   ExpectStderrMatchesText("");
 }
 
 TEST_P(EncodeDecodeTest, Decode) {
-  RedirectStdinFromFile(TestSourceDir() +
-    "/google/protobuf/testdata/golden_message_oneof_implemented");
-  EXPECT_TRUE(Run("google/protobuf/unittest.proto "
-                  "--decode=protobuf_unittest.TestAllTypes"));
-  ExpectStdoutMatchesTextFile(TestSourceDir() +
-    "/google/protobuf/"
-    "testdata/text_format_unittest_data_oneof_implemented.txt");
+  RedirectStdinFromFile(TestUtil::GetTestDataPath(
+      "net/proto2/internal/testdata/golden_message_oneof_implemented"));
+  EXPECT_TRUE(
+      Run(TestUtil::MaybeTranslatePath("net/proto2/internal/unittest.proto") +
+          " --decode=protobuf_unittest.TestAllTypes"));
+  ExpectStdoutMatchesTextFile(TestUtil::GetTestDataPath(
+      "net/proto2/internal/"
+      "testdata/text_format_unittest_data_oneof_implemented.txt"));
   ExpectStderrMatchesText("");
 }
 
 TEST_P(EncodeDecodeTest, Partial) {
   RedirectStdinFromText("");
-  EXPECT_TRUE(Run("google/protobuf/unittest.proto "
-                  "--encode=protobuf_unittest.TestRequired"));
+  EXPECT_TRUE(
+      Run(TestUtil::MaybeTranslatePath("net/proto2/internal/unittest.proto") +
+          " --encode=protobuf_unittest.TestRequired"));
   ExpectStdoutMatchesText("");
   ExpectStderrMatchesText(
     "warning:  Input message is missing required fields:  a, b, c\n");
@@ -2416,18 +2417,20 @@ TEST_P(EncodeDecodeTest, DecodeRaw) {
 }
 
 TEST_P(EncodeDecodeTest, UnknownType) {
-  EXPECT_FALSE(Run("google/protobuf/unittest.proto "
-                   "--encode=NoSuchType"));
+  EXPECT_FALSE(
+      Run(TestUtil::MaybeTranslatePath("net/proto2/internal/unittest.proto") +
+          " --encode=NoSuchType"));
   ExpectStdoutMatchesText("");
   ExpectStderrMatchesText("Type not defined: NoSuchType\n");
 }
 
 TEST_P(EncodeDecodeTest, ProtoParseError) {
-  EXPECT_FALSE(Run("google/protobuf/no_such_file.proto "
-                   "--encode=NoSuchType"));
+  EXPECT_FALSE(
+      Run("net/proto2/internal/no_such_file.proto "
+          "--encode=NoSuchType"));
   ExpectStdoutMatchesText("");
   ExpectStderrMatchesText(
-      "google/protobuf/no_such_file.proto: No such file or directory\n");
+      "net/proto2/internal/no_such_file.proto: No such file or directory\n");
 }
 
 INSTANTIATE_TEST_CASE_P(FileDescriptorSetSource,

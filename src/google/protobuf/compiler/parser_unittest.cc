@@ -33,15 +33,13 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <vector>
 #include <algorithm>
 #include <map>
 
 #include <google/protobuf/compiler/parser.h>
 
+#include <google/protobuf/test_util2.h>
 #include <google/protobuf/unittest.pb.h>
 #include <google/protobuf/unittest_custom_options.pb.h>
 #include <google/protobuf/io/tokenizer.h>
@@ -50,6 +48,7 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/wire_format.h>
 #include <google/protobuf/stubs/substitute.h>
+
 #include <google/protobuf/stubs/map_util.h>
 
 #include <google/protobuf/testing/googletest.h>
@@ -177,9 +176,9 @@ class ParserTest : public testing::Test {
   MockErrorCollector error_collector_;
   DescriptorPool pool_;
 
-  google::protobuf::scoped_ptr<io::ZeroCopyInputStream> raw_input_;
-  google::protobuf::scoped_ptr<io::Tokenizer> input_;
-  google::protobuf::scoped_ptr<Parser> parser_;
+  std::unique_ptr<io::ZeroCopyInputStream> raw_input_;
+  std::unique_ptr<io::Tokenizer> input_;
+  std::unique_ptr<Parser> parser_;
   bool require_syntax_identifier_;
 };
 
@@ -1748,7 +1747,8 @@ TEST_F(ParserValidationErrorTest, FieldDefaultValueError) {
 TEST_F(ParserValidationErrorTest, FileOptionNameError) {
   ExpectHasValidationErrors(
     "option foo = 5;",
-    "0:7: Option \"foo\" unknown.\n");
+    "0:7: Option \"foo\" unknown. Ensure that your proto definition file "
+    "imports the proto which defines the option.\n");
 }
 
 TEST_F(ParserValidationErrorTest, FileOptionValueError) {
@@ -1763,7 +1763,8 @@ TEST_F(ParserValidationErrorTest, FieldOptionNameError) {
     "message Foo {\n"
     "  optional bool bar = 1 [foo=1];\n"
     "}\n",
-    "1:25: Option \"foo\" unknown.\n");
+    "1:25: Option \"foo\" unknown. Ensure that your proto definition file "
+    "imports the proto which defines the option.\n");
 }
 
 TEST_F(ParserValidationErrorTest, FieldOptionValueError) {
@@ -1868,7 +1869,7 @@ TEST_F(ParserValidationErrorTest, ResovledUndefinedOptionError) {
 
   // base2.proto:
   //   package baz
-  //   import google/protobuf/descriptor.proto
+  //   import net/proto2/proto/descriptor.proto
   //   message Bar { optional int32 foo = 1; }
   //   extend FileOptions { optional Bar bar = 7672757; }
   FileDescriptorProto other_file;
@@ -1994,7 +1995,8 @@ TEST_F(ParseDescriptorDebugTest, TestAllDescriptorTypes) {
   // We now have a FileDescriptorProto, but to compare with the expected we
   // need to link to a FileDecriptor, then output back to a proto. We'll
   // also need to give it the same name as the original.
-  parsed.set_name("google/protobuf/unittest.proto");
+  parsed.set_name(
+      TestUtil::MaybeTranslatePath("net/proto2/internal/unittest.proto"));
   // We need the imported dependency before we can build our parsed proto
   const FileDescriptor* public_import =
       protobuf_unittest_import::PublicImportMessage::descriptor()->file();

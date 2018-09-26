@@ -642,7 +642,7 @@ namespace Google.Protobuf.TestProtos {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public TestMapSubmessage(TestMapSubmessage other) : this() {
-      TestMap = other.testMap_ != null ? other.TestMap.Clone() : null;
+      testMap_ = other.testMap_ != null ? other.testMap_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -724,7 +724,7 @@ namespace Google.Protobuf.TestProtos {
       }
       if (other.testMap_ != null) {
         if (testMap_ == null) {
-          testMap_ = new global::Google.Protobuf.TestProtos.TestMap();
+          TestMap = new global::Google.Protobuf.TestProtos.TestMap();
         }
         TestMap.MergeFrom(other.TestMap);
       }
@@ -741,9 +741,9 @@ namespace Google.Protobuf.TestProtos {
             break;
           case 10: {
             if (testMap_ == null) {
-              testMap_ = new global::Google.Protobuf.TestProtos.TestMap();
+              TestMap = new global::Google.Protobuf.TestProtos.TestMap();
             }
-            input.ReadMessage(testMap_);
+            input.ReadMessage(TestMap);
             break;
           }
         }

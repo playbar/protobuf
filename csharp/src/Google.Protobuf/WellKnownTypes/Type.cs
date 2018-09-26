@@ -123,7 +123,7 @@ namespace Google.Protobuf.WellKnownTypes {
       fields_ = other.fields_.Clone();
       oneofs_ = other.oneofs_.Clone();
       options_ = other.options_.Clone();
-      SourceContext = other.sourceContext_ != null ? other.SourceContext.Clone() : null;
+      sourceContext_ = other.sourceContext_ != null ? other.sourceContext_.Clone() : null;
       syntax_ = other.syntax_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -312,7 +312,7 @@ namespace Google.Protobuf.WellKnownTypes {
       options_.Add(other.options_);
       if (other.sourceContext_ != null) {
         if (sourceContext_ == null) {
-          sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+          SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
         }
         SourceContext.MergeFrom(other.SourceContext);
       }
@@ -348,13 +348,13 @@ namespace Google.Protobuf.WellKnownTypes {
           }
           case 42: {
             if (sourceContext_ == null) {
-              sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+              SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
             }
-            input.ReadMessage(sourceContext_);
+            input.ReadMessage(SourceContext);
             break;
           }
           case 48: {
-            syntax_ = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
+            Syntax = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
             break;
           }
         }
@@ -726,11 +726,11 @@ namespace Google.Protobuf.WellKnownTypes {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            kind_ = (global::Google.Protobuf.WellKnownTypes.Field.Types.Kind) input.ReadEnum();
+            Kind = (global::Google.Protobuf.WellKnownTypes.Field.Types.Kind) input.ReadEnum();
             break;
           }
           case 16: {
-            cardinality_ = (global::Google.Protobuf.WellKnownTypes.Field.Types.Cardinality) input.ReadEnum();
+            Cardinality = (global::Google.Protobuf.WellKnownTypes.Field.Types.Cardinality) input.ReadEnum();
             break;
           }
           case 24: {
@@ -913,7 +913,7 @@ namespace Google.Protobuf.WellKnownTypes {
       name_ = other.name_;
       enumvalue_ = other.enumvalue_.Clone();
       options_ = other.options_.Clone();
-      SourceContext = other.sourceContext_ != null ? other.SourceContext.Clone() : null;
+      sourceContext_ = other.sourceContext_ != null ? other.sourceContext_.Clone() : null;
       syntax_ = other.syntax_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1084,7 +1084,7 @@ namespace Google.Protobuf.WellKnownTypes {
       options_.Add(other.options_);
       if (other.sourceContext_ != null) {
         if (sourceContext_ == null) {
-          sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+          SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
         }
         SourceContext.MergeFrom(other.SourceContext);
       }
@@ -1116,13 +1116,13 @@ namespace Google.Protobuf.WellKnownTypes {
           }
           case 34: {
             if (sourceContext_ == null) {
-              sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+              SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
             }
-            input.ReadMessage(sourceContext_);
+            input.ReadMessage(SourceContext);
             break;
           }
           case 40: {
-            syntax_ = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
+            Syntax = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
             break;
           }
         }
@@ -1350,7 +1350,7 @@ namespace Google.Protobuf.WellKnownTypes {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public Option(Option other) : this() {
       name_ = other.name_;
-      Value = other.value_ != null ? other.Value.Clone() : null;
+      value_ = other.value_ != null ? other.value_.Clone() : null;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1467,7 +1467,7 @@ namespace Google.Protobuf.WellKnownTypes {
       }
       if (other.value_ != null) {
         if (value_ == null) {
-          value_ = new global::Google.Protobuf.WellKnownTypes.Any();
+          Value = new global::Google.Protobuf.WellKnownTypes.Any();
         }
         Value.MergeFrom(other.Value);
       }
@@ -1488,9 +1488,9 @@ namespace Google.Protobuf.WellKnownTypes {
           }
           case 18: {
             if (value_ == null) {
-              value_ = new global::Google.Protobuf.WellKnownTypes.Any();
+              Value = new global::Google.Protobuf.WellKnownTypes.Any();
             }
-            input.ReadMessage(value_);
+            input.ReadMessage(Value);
             break;
           }
         }

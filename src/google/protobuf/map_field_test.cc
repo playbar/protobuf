@@ -30,25 +30,23 @@
 
 #include <map>
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
+#include <unordered_map>
 
 #include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/stubs/common.h>
+#include <google/protobuf/arena_test_util.h>
+#include <google/protobuf/map_test_util.h>
+#include <google/protobuf/map_unittest.pb.h>
+#include <google/protobuf/unittest.pb.h>
 #include <google/protobuf/arena.h>
 #include <google/protobuf/map.h>
-#include <google/protobuf/arena_test_util.h>
-#include <google/protobuf/map_unittest.pb.h>
-#include <google/protobuf/map_test_util.h>
-#include <google/protobuf/unittest.pb.h>
 #include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 #include <gtest/gtest.h>
-namespace google {
 
+namespace google {
 namespace protobuf {
 
 namespace internal {
@@ -71,10 +69,18 @@ class MapFieldBaseStub : public MapFieldBase {
   RepeatedPtrField<Message>* InternalRepeatedField() {
     return repeated_field_;
   }
-  bool IsMapClean() { return state_ != 0; }
-  bool IsRepeatedClean() { return state_ != 1; }
-  void SetMapDirty() { state_ = 0; }
-  void SetRepeatedDirty() { state_ = 1; }
+  bool IsMapClean() {
+    return state_.load(std::memory_order_relaxed) != STATE_MODIFIED_MAP;
+  }
+  bool IsRepeatedClean() {
+    return state_.load(std::memory_order_relaxed) != STATE_MODIFIED_REPEATED;
+  }
+  void SetMapDirty() {
+    state_.store(STATE_MODIFIED_MAP, std::memory_order_relaxed);
+  }
+  void SetRepeatedDirty() {
+    state_.store(STATE_MODIFIED_REPEATED, std::memory_order_relaxed);
+  }
   bool ContainsMapKey(const MapKey& map_key) const {
     return false;
   }
@@ -90,6 +96,7 @@ class MapFieldBaseStub : public MapFieldBase {
   int size() const { return 0; }
   void MapBegin(MapIterator* map_iter) const {}
   void MapEnd(MapIterator* map_iter) const {}
+  void Swap(MapFieldBase* other) {}
   void InitializeIterator(MapIterator* map_iter) const {}
   void DeleteIterator(MapIterator* map_iter) const {}
   void CopyIterator(MapIterator* this_iterator,
@@ -124,7 +131,7 @@ class MapFieldBasePrimitiveTest : public ::testing::Test {
     EXPECT_EQ(2, map_->size());
   }
 
-  google::protobuf::scoped_ptr<MapFieldType> map_field_;
+  std::unique_ptr<MapFieldType> map_field_;
   MapFieldBase* map_field_base_;
   Map<int32, int32>* map_;
   const Descriptor* map_descriptor_;
@@ -291,7 +298,7 @@ class MapFieldStateTest
     }
   }
 
-  google::protobuf::scoped_ptr<MapFieldType> map_field_;
+  std::unique_ptr<MapFieldType> map_field_;
   MapFieldBase* map_field_base_;
   State state_;
 };

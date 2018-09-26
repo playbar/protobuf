@@ -31,18 +31,11 @@
 // Author: jschorr@google.com (Joseph Schorr)
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
-//
-// This file defines static methods and classes for comparing Protocol
-// Messages (see //google/protobuf/util/message_differencer.h for more
-// information).
 
 #include <google/protobuf/util/message_differencer.h>
 
 #include <algorithm>
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
 #include <utility>
 
 #include <google/protobuf/stubs/callback.h>
@@ -58,6 +51,7 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/field_comparator.h>
 #include <google/protobuf/stubs/strutil.h>
+
 
 namespace google {
 namespace protobuf {
@@ -90,10 +84,8 @@ class MessageDifferencer::MultipleFieldsMapKeyComparator
     key_field_path.push_back(key);
     key_field_paths_.push_back(key_field_path);
   }
-  virtual bool IsMatch(
-      const Message& message1,
-      const Message& message2,
-      const std::vector<SpecificField>& parent_fields) const {
+  bool IsMatch(const Message& message1, const Message& message2,
+               const std::vector<SpecificField>& parent_fields) const override {
     for (int i = 0; i < key_field_paths_.size(); ++i) {
       if (!IsMatchInternal(message1, message2, parent_fields,
                            key_field_paths_[i], 0)) {
@@ -102,6 +94,7 @@ class MessageDifferencer::MultipleFieldsMapKeyComparator
     }
     return true;
   }
+
  private:
   bool IsMatchInternal(
       const Message& message1,
@@ -221,6 +214,7 @@ MessageDifferencer::MessageDifferencer()
       map_entry_key_comparator_(this),
       report_matches_(false),
       report_moves_(true),
+      report_ignores_(true),
       output_string_(NULL) {}
 
 MessageDifferencer::~MessageDifferencer() {
@@ -490,8 +484,8 @@ bool MessageDifferencer::Compare(
   }
   // Expand google.protobuf.Any payload if possible.
   if (descriptor1->full_name() == internal::kAnyFullTypeName) {
-    google::protobuf::scoped_ptr<Message> data1;
-    google::protobuf::scoped_ptr<Message> data2;
+    std::unique_ptr<Message> data1;
+    std::unique_ptr<Message> data2;
     if (UnpackAny(message1, &data1) && UnpackAny(message2, &data2)) {
       // Avoid DFATAL for different descriptors in google.protobuf.Any payloads.
       if (data1->GetDescriptor() != data2->GetDescriptor()) {
@@ -536,9 +530,9 @@ bool MessageDifferencer::Compare(
   bool unknown_compare_result = true;
   // Ignore unknown fields in EQUIVALENT mode
   if (message_field_comparison_ != EQUIVALENT) {
-    const google::protobuf::UnknownFieldSet* unknown_field_set1 =
+    const UnknownFieldSet* unknown_field_set1 =
         &reflection1->GetUnknownFields(message1);
-    const google::protobuf::UnknownFieldSet* unknown_field_set2 =
+    const UnknownFieldSet* unknown_field_set2 =
         &reflection2->GetUnknownFields(message2);
     if (!CompareUnknownFields(message1, message2,
                               *unknown_field_set1, *unknown_field_set2,
@@ -663,7 +657,9 @@ bool MessageDifferencer::CompareWithFieldsInternal(
           specific_field.field = field1;
 
           parent_fields->push_back(specific_field);
-          reporter_->ReportIgnored(message1, message2, *parent_fields);
+          if (report_ignores_) {
+            reporter_->ReportIgnored(message1, message2, *parent_fields);
+          }
           parent_fields->pop_back();
         }
         ++field_index1;
@@ -702,7 +698,9 @@ bool MessageDifferencer::CompareWithFieldsInternal(
           specific_field.field = field2;
 
           parent_fields->push_back(specific_field);
-          reporter_->ReportIgnored(message1, message2, *parent_fields);
+          if (report_ignores_) {
+            reporter_->ReportIgnored(message1, message2, *parent_fields);
+          }
           parent_fields->pop_back();
         }
         ++field_index2;
@@ -742,7 +740,9 @@ bool MessageDifferencer::CompareWithFieldsInternal(
         specific_field.field = field1;
 
         parent_fields->push_back(specific_field);
-        reporter_->ReportIgnored(message1, message2, *parent_fields);
+        if (report_ignores_) {
+          reporter_->ReportIgnored(message1, message2, *parent_fields);
+        }
         parent_fields->pop_back();
       }
 
@@ -1068,7 +1068,7 @@ struct UnknownFieldOrdering {
 }  // namespace
 
 bool MessageDifferencer::UnpackAny(const Message& any,
-                                   google::protobuf::scoped_ptr<Message>* data) {
+                                   std::unique_ptr<Message>* data) {
   const Reflection* reflection = any.GetReflection();
   const FieldDescriptor* type_url_field;
   const FieldDescriptor* value_field;
@@ -1081,7 +1081,7 @@ bool MessageDifferencer::UnpackAny(const Message& any,
     return false;
   }
 
-  const google::protobuf::Descriptor* desc =
+  const Descriptor* desc =
       any.GetDescriptor()->file()->pool()->FindMessageTypeByName(
           full_type_name);
   if (desc == NULL) {
@@ -1103,8 +1103,8 @@ bool MessageDifferencer::UnpackAny(const Message& any,
 
 bool MessageDifferencer::CompareUnknownFields(
     const Message& message1, const Message& message2,
-    const google::protobuf::UnknownFieldSet& unknown_field_set1,
-    const google::protobuf::UnknownFieldSet& unknown_field_set2,
+    const UnknownFieldSet& unknown_field_set1,
+    const UnknownFieldSet& unknown_field_set2,
     std::vector<SpecificField>* parent_field) {
   // Ignore unknown fields in EQUIVALENT mode.
   if (message_field_comparison_ == EQUIVALENT) return true;
@@ -1341,7 +1341,7 @@ class MaximumMatcher {
 
   int count1_;
   int count2_;
-  google::protobuf::scoped_ptr<NodeMatchCallback> match_callback_;
+  std::unique_ptr<NodeMatchCallback> match_callback_;
   std::map<std::pair<int, int>, bool> cached_match_results_;
   std::vector<int>* match_list1_;
   std::vector<int>* match_list2_;
@@ -1437,6 +1437,13 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
   match_list1->assign(count1, -1);
   match_list2->assign(count2, -1);
 
+  // Ensure that we don't report differences during the matching process. Since
+  // field comparators could potentially use this message differencer object to
+  // perform further comparisons, turn off reporting here and re-enable it
+  // before returning.
+  Reporter* reporter = reporter_;
+  reporter_ = NULL;
+
   bool success = true;
   // Find potential match if this is a special repeated field.
   if (key_comparator != NULL || IsTreatedAsSet(repeated_field)) {
@@ -1454,16 +1461,32 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
                              match_list2);
       // If diff info is not needed, we should end the matching process as
       // soon as possible if not all items can be matched.
-      bool early_return = (reporter_ == NULL);
+      bool early_return = (reporter == NULL);
       int match_count = matcher.FindMaximumMatch(early_return);
-      if (match_count != count1 && reporter_ == NULL) return false;
+      if (match_count != count1 && reporter == NULL) return false;
       success = success && (match_count == count1);
     } else {
-      for (int i = 0; i < count1; ++i) {
+      int start_offset = 0;
+      // If the two repeated fields are treated as sets, optimize for the case
+      // where both start with same items stored in the same order.
+      if (IsTreatedAsSet(repeated_field)) {
+        start_offset = std::min(count1, count2);
+        for (int i = 0; i < count1 && i < count2; i++) {
+          if (IsMatch(repeated_field, key_comparator, &message1, &message2,
+                      parent_fields, i, i)) {
+            match_list1->at(i) = i;
+            match_list2->at(i) = i;
+          } else {
+            start_offset = i;
+            break;
+          }
+        }
+      }
+      for (int i = start_offset; i < count1; ++i) {
         // Indicates any matched elements for this repeated field.
         bool match = false;
 
-        for (int j = 0; j < count2; j++) {
+        for (int j = start_offset; j < count2; j++) {
           if (match_list2->at(j) != -1) continue;
 
           match = IsMatch(repeated_field, key_comparator,
@@ -1475,7 +1498,7 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
             break;
           }
         }
-        if (!match && reporter_ == NULL) return false;
+        if (!match && reporter == NULL) return false;
         success = success && match;
       }
     }
@@ -1486,6 +1509,8 @@ bool MessageDifferencer::MatchRepeatedFieldIndices(
       match_list2->at(i) = i;
     }
   }
+
+  reporter_ = reporter;
 
   return success;
 }
@@ -1554,13 +1579,16 @@ void MessageDifferencer::StreamReporter::PrintPath(
         continue;
       }
     } else {
-      printer_->PrintRaw(SimpleItoa(specific_field.unknown_field_number));
+      printer_->PrintRaw(
+          SimpleItoa(specific_field.unknown_field_number));
     }
     if (left_side && specific_field.index >= 0) {
-      printer_->Print("[$name$]", "name", SimpleItoa(specific_field.index));
+      printer_->Print("[$name$]", "name",
+                      SimpleItoa(specific_field.index));
     }
     if (!left_side && specific_field.new_index >= 0) {
-      printer_->Print("[$name$]", "name", SimpleItoa(specific_field.new_index));
+      printer_->Print("[$name$]", "name",
+                      SimpleItoa(specific_field.new_index));
     }
   }
 }
@@ -1618,12 +1646,12 @@ StreamReporter::PrintUnknownFieldValue(const UnknownField* unknown_field) {
       output = SimpleItoa(unknown_field->varint());
       break;
     case UnknownField::TYPE_FIXED32:
-      output = StrCat("0x", strings::Hex(unknown_field->fixed32(),
-                                         strings::ZERO_PAD_8));
+      output = StrCat(
+          "0x", strings::Hex(unknown_field->fixed32(), strings::ZERO_PAD_8));
       break;
     case UnknownField::TYPE_FIXED64:
-      output = StrCat("0x", strings::Hex(unknown_field->fixed64(),
-                                         strings::ZERO_PAD_16));
+      output = StrCat(
+          "0x", strings::Hex(unknown_field->fixed64(), strings::ZERO_PAD_16));
       break;
     case UnknownField::TYPE_LENGTH_DELIMITED:
       output = StringPrintf("\"%s\"",

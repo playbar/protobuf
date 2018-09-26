@@ -273,13 +273,13 @@ namespace ProtobufTestMessages.Proto3 {
       optionalBool_ = other.optionalBool_;
       optionalString_ = other.optionalString_;
       optionalBytes_ = other.optionalBytes_;
-      OptionalNestedMessage = other.optionalNestedMessage_ != null ? other.OptionalNestedMessage.Clone() : null;
-      OptionalForeignMessage = other.optionalForeignMessage_ != null ? other.OptionalForeignMessage.Clone() : null;
+      optionalNestedMessage_ = other.optionalNestedMessage_ != null ? other.optionalNestedMessage_.Clone() : null;
+      optionalForeignMessage_ = other.optionalForeignMessage_ != null ? other.optionalForeignMessage_.Clone() : null;
       optionalNestedEnum_ = other.optionalNestedEnum_;
       optionalForeignEnum_ = other.optionalForeignEnum_;
       optionalStringPiece_ = other.optionalStringPiece_;
       optionalCord_ = other.optionalCord_;
-      RecursiveMessage = other.recursiveMessage_ != null ? other.RecursiveMessage.Clone() : null;
+      recursiveMessage_ = other.recursiveMessage_ != null ? other.recursiveMessage_.Clone() : null;
       repeatedInt32_ = other.repeatedInt32_.Clone();
       repeatedInt64_ = other.repeatedInt64_.Clone();
       repeatedUint32_ = other.repeatedUint32_.Clone();
@@ -338,12 +338,12 @@ namespace ProtobufTestMessages.Proto3 {
       repeatedDoubleWrapper_ = other.repeatedDoubleWrapper_.Clone();
       repeatedStringWrapper_ = other.repeatedStringWrapper_.Clone();
       repeatedBytesWrapper_ = other.repeatedBytesWrapper_.Clone();
-      OptionalDuration = other.optionalDuration_ != null ? other.OptionalDuration.Clone() : null;
-      OptionalTimestamp = other.optionalTimestamp_ != null ? other.OptionalTimestamp.Clone() : null;
-      OptionalFieldMask = other.optionalFieldMask_ != null ? other.OptionalFieldMask.Clone() : null;
-      OptionalStruct = other.optionalStruct_ != null ? other.OptionalStruct.Clone() : null;
-      OptionalAny = other.optionalAny_ != null ? other.OptionalAny.Clone() : null;
-      OptionalValue = other.optionalValue_ != null ? other.OptionalValue.Clone() : null;
+      optionalDuration_ = other.optionalDuration_ != null ? other.optionalDuration_.Clone() : null;
+      optionalTimestamp_ = other.optionalTimestamp_ != null ? other.optionalTimestamp_.Clone() : null;
+      optionalFieldMask_ = other.optionalFieldMask_ != null ? other.optionalFieldMask_.Clone() : null;
+      optionalStruct_ = other.optionalStruct_ != null ? other.optionalStruct_.Clone() : null;
+      optionalAny_ = other.optionalAny_ != null ? other.optionalAny_.Clone() : null;
+      optionalValue_ = other.optionalValue_ != null ? other.optionalValue_.Clone() : null;
       repeatedDuration_ = other.repeatedDuration_.Clone();
       repeatedTimestamp_ = other.repeatedTimestamp_.Clone();
       repeatedFieldmask_ = other.repeatedFieldmask_.Clone();
@@ -1171,6 +1171,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
     }
 
+
     /// <summary>Field number for the "optional_int32_wrapper" field.</summary>
     public const int OptionalInt32WrapperFieldNumber = 202;
     private static readonly pb::FieldCodec<int?> _single_optionalInt32Wrapper_codec = pb::FieldCodec.ForStructWrapper<int>(1618);
@@ -1182,6 +1183,7 @@ namespace ProtobufTestMessages.Proto3 {
         optionalInt32Wrapper_ = value;
       }
     }
+
 
     /// <summary>Field number for the "optional_int64_wrapper" field.</summary>
     public const int OptionalInt64WrapperFieldNumber = 203;
@@ -1195,6 +1197,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
     }
 
+
     /// <summary>Field number for the "optional_uint32_wrapper" field.</summary>
     public const int OptionalUint32WrapperFieldNumber = 204;
     private static readonly pb::FieldCodec<uint?> _single_optionalUint32Wrapper_codec = pb::FieldCodec.ForStructWrapper<uint>(1634);
@@ -1206,6 +1209,7 @@ namespace ProtobufTestMessages.Proto3 {
         optionalUint32Wrapper_ = value;
       }
     }
+
 
     /// <summary>Field number for the "optional_uint64_wrapper" field.</summary>
     public const int OptionalUint64WrapperFieldNumber = 205;
@@ -1219,6 +1223,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
     }
 
+
     /// <summary>Field number for the "optional_float_wrapper" field.</summary>
     public const int OptionalFloatWrapperFieldNumber = 206;
     private static readonly pb::FieldCodec<float?> _single_optionalFloatWrapper_codec = pb::FieldCodec.ForStructWrapper<float>(1650);
@@ -1230,6 +1235,7 @@ namespace ProtobufTestMessages.Proto3 {
         optionalFloatWrapper_ = value;
       }
     }
+
 
     /// <summary>Field number for the "optional_double_wrapper" field.</summary>
     public const int OptionalDoubleWrapperFieldNumber = 207;
@@ -1243,6 +1249,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
     }
 
+
     /// <summary>Field number for the "optional_string_wrapper" field.</summary>
     public const int OptionalStringWrapperFieldNumber = 208;
     private static readonly pb::FieldCodec<string> _single_optionalStringWrapper_codec = pb::FieldCodec.ForClassWrapper<string>(1666);
@@ -1255,6 +1262,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
     }
 
+
     /// <summary>Field number for the "optional_bytes_wrapper" field.</summary>
     public const int OptionalBytesWrapperFieldNumber = 209;
     private static readonly pb::FieldCodec<pb::ByteString> _single_optionalBytesWrapper_codec = pb::FieldCodec.ForClassWrapper<pb::ByteString>(1674);
@@ -1266,6 +1274,7 @@ namespace ProtobufTestMessages.Proto3 {
         optionalBytesWrapper_ = value;
       }
     }
+
 
     /// <summary>Field number for the "repeated_bool_wrapper" field.</summary>
     public const int RepeatedBoolWrapperFieldNumber = 211;
@@ -2598,13 +2607,13 @@ namespace ProtobufTestMessages.Proto3 {
       }
       if (other.optionalNestedMessage_ != null) {
         if (optionalNestedMessage_ == null) {
-          optionalNestedMessage_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedMessage();
+          OptionalNestedMessage = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedMessage();
         }
         OptionalNestedMessage.MergeFrom(other.OptionalNestedMessage);
       }
       if (other.optionalForeignMessage_ != null) {
         if (optionalForeignMessage_ == null) {
-          optionalForeignMessage_ = new global::ProtobufTestMessages.Proto3.ForeignMessage();
+          OptionalForeignMessage = new global::ProtobufTestMessages.Proto3.ForeignMessage();
         }
         OptionalForeignMessage.MergeFrom(other.OptionalForeignMessage);
       }
@@ -2622,7 +2631,7 @@ namespace ProtobufTestMessages.Proto3 {
       }
       if (other.recursiveMessage_ != null) {
         if (recursiveMessage_ == null) {
-          recursiveMessage_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
+          RecursiveMessage = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
         }
         RecursiveMessage.MergeFrom(other.RecursiveMessage);
       }
@@ -2722,37 +2731,37 @@ namespace ProtobufTestMessages.Proto3 {
       repeatedBytesWrapper_.Add(other.repeatedBytesWrapper_);
       if (other.optionalDuration_ != null) {
         if (optionalDuration_ == null) {
-          optionalDuration_ = new global::Google.Protobuf.WellKnownTypes.Duration();
+          OptionalDuration = new global::Google.Protobuf.WellKnownTypes.Duration();
         }
         OptionalDuration.MergeFrom(other.OptionalDuration);
       }
       if (other.optionalTimestamp_ != null) {
         if (optionalTimestamp_ == null) {
-          optionalTimestamp_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+          OptionalTimestamp = new global::Google.Protobuf.WellKnownTypes.Timestamp();
         }
         OptionalTimestamp.MergeFrom(other.OptionalTimestamp);
       }
       if (other.optionalFieldMask_ != null) {
         if (optionalFieldMask_ == null) {
-          optionalFieldMask_ = new global::Google.Protobuf.WellKnownTypes.FieldMask();
+          OptionalFieldMask = new global::Google.Protobuf.WellKnownTypes.FieldMask();
         }
         OptionalFieldMask.MergeFrom(other.OptionalFieldMask);
       }
       if (other.optionalStruct_ != null) {
         if (optionalStruct_ == null) {
-          optionalStruct_ = new global::Google.Protobuf.WellKnownTypes.Struct();
+          OptionalStruct = new global::Google.Protobuf.WellKnownTypes.Struct();
         }
         OptionalStruct.MergeFrom(other.OptionalStruct);
       }
       if (other.optionalAny_ != null) {
         if (optionalAny_ == null) {
-          optionalAny_ = new global::Google.Protobuf.WellKnownTypes.Any();
+          OptionalAny = new global::Google.Protobuf.WellKnownTypes.Any();
         }
         OptionalAny.MergeFrom(other.OptionalAny);
       }
       if (other.optionalValue_ != null) {
         if (optionalValue_ == null) {
-          optionalValue_ = new global::Google.Protobuf.WellKnownTypes.Value();
+          OptionalValue = new global::Google.Protobuf.WellKnownTypes.Value();
         }
         OptionalValue.MergeFrom(other.OptionalValue);
       }
@@ -2922,24 +2931,24 @@ namespace ProtobufTestMessages.Proto3 {
           }
           case 146: {
             if (optionalNestedMessage_ == null) {
-              optionalNestedMessage_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedMessage();
+              OptionalNestedMessage = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedMessage();
             }
-            input.ReadMessage(optionalNestedMessage_);
+            input.ReadMessage(OptionalNestedMessage);
             break;
           }
           case 154: {
             if (optionalForeignMessage_ == null) {
-              optionalForeignMessage_ = new global::ProtobufTestMessages.Proto3.ForeignMessage();
+              OptionalForeignMessage = new global::ProtobufTestMessages.Proto3.ForeignMessage();
             }
-            input.ReadMessage(optionalForeignMessage_);
+            input.ReadMessage(OptionalForeignMessage);
             break;
           }
           case 168: {
-            optionalNestedEnum_ = (global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedEnum) input.ReadEnum();
+            OptionalNestedEnum = (global::ProtobufTestMessages.Proto3.TestAllTypesProto3.Types.NestedEnum) input.ReadEnum();
             break;
           }
           case 176: {
-            optionalForeignEnum_ = (global::ProtobufTestMessages.Proto3.ForeignEnum) input.ReadEnum();
+            OptionalForeignEnum = (global::ProtobufTestMessages.Proto3.ForeignEnum) input.ReadEnum();
             break;
           }
           case 194: {
@@ -2952,9 +2961,9 @@ namespace ProtobufTestMessages.Proto3 {
           }
           case 218: {
             if (recursiveMessage_ == null) {
-              recursiveMessage_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
+              RecursiveMessage = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
             }
-            input.ReadMessage(recursiveMessage_);
+            input.ReadMessage(RecursiveMessage);
             break;
           }
           case 250:
@@ -3275,44 +3284,44 @@ namespace ProtobufTestMessages.Proto3 {
           }
           case 2410: {
             if (optionalDuration_ == null) {
-              optionalDuration_ = new global::Google.Protobuf.WellKnownTypes.Duration();
+              OptionalDuration = new global::Google.Protobuf.WellKnownTypes.Duration();
             }
-            input.ReadMessage(optionalDuration_);
+            input.ReadMessage(OptionalDuration);
             break;
           }
           case 2418: {
             if (optionalTimestamp_ == null) {
-              optionalTimestamp_ = new global::Google.Protobuf.WellKnownTypes.Timestamp();
+              OptionalTimestamp = new global::Google.Protobuf.WellKnownTypes.Timestamp();
             }
-            input.ReadMessage(optionalTimestamp_);
+            input.ReadMessage(OptionalTimestamp);
             break;
           }
           case 2426: {
             if (optionalFieldMask_ == null) {
-              optionalFieldMask_ = new global::Google.Protobuf.WellKnownTypes.FieldMask();
+              OptionalFieldMask = new global::Google.Protobuf.WellKnownTypes.FieldMask();
             }
-            input.ReadMessage(optionalFieldMask_);
+            input.ReadMessage(OptionalFieldMask);
             break;
           }
           case 2434: {
             if (optionalStruct_ == null) {
-              optionalStruct_ = new global::Google.Protobuf.WellKnownTypes.Struct();
+              OptionalStruct = new global::Google.Protobuf.WellKnownTypes.Struct();
             }
-            input.ReadMessage(optionalStruct_);
+            input.ReadMessage(OptionalStruct);
             break;
           }
           case 2442: {
             if (optionalAny_ == null) {
-              optionalAny_ = new global::Google.Protobuf.WellKnownTypes.Any();
+              OptionalAny = new global::Google.Protobuf.WellKnownTypes.Any();
             }
-            input.ReadMessage(optionalAny_);
+            input.ReadMessage(OptionalAny);
             break;
           }
           case 2450: {
             if (optionalValue_ == null) {
-              optionalValue_ = new global::Google.Protobuf.WellKnownTypes.Value();
+              OptionalValue = new global::Google.Protobuf.WellKnownTypes.Value();
             }
-            input.ReadMessage(optionalValue_);
+            input.ReadMessage(OptionalValue);
             break;
           }
           case 2490: {
@@ -3455,7 +3464,7 @@ namespace ProtobufTestMessages.Proto3 {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         public NestedMessage(NestedMessage other) : this() {
           a_ = other.a_;
-          Corecursive = other.corecursive_ != null ? other.Corecursive.Clone() : null;
+          corecursive_ = other.corecursive_ != null ? other.corecursive_.Clone() : null;
           _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
         }
 
@@ -3560,7 +3569,7 @@ namespace ProtobufTestMessages.Proto3 {
           }
           if (other.corecursive_ != null) {
             if (corecursive_ == null) {
-              corecursive_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
+              Corecursive = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
             }
             Corecursive.MergeFrom(other.Corecursive);
           }
@@ -3581,9 +3590,9 @@ namespace ProtobufTestMessages.Proto3 {
               }
               case 18: {
                 if (corecursive_ == null) {
-                  corecursive_ = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
+                  Corecursive = new global::ProtobufTestMessages.Proto3.TestAllTypesProto3();
                 }
-                input.ReadMessage(corecursive_);
+                input.ReadMessage(Corecursive);
                 break;
               }
             }

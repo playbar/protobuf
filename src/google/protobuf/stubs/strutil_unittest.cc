@@ -50,18 +50,18 @@ namespace {
 
 TEST(StringUtilityTest, ImmuneToLocales) {
   // Remember the old locale.
-  char* old_locale_cstr = setlocale(LC_NUMERIC, NULL);
-  ASSERT_TRUE(old_locale_cstr != NULL);
+  char* old_locale_cstr = setlocale(LC_NUMERIC, nullptr);
+  ASSERT_TRUE(old_locale_cstr != nullptr);
   string old_locale = old_locale_cstr;
 
   // Set the locale to "C".
-  ASSERT_TRUE(setlocale(LC_NUMERIC, "C") != NULL);
+  ASSERT_TRUE(setlocale(LC_NUMERIC, "C") != nullptr);
 
   EXPECT_EQ("1.5", SimpleDtoa(1.5));
   EXPECT_EQ("1.5", SimpleFtoa(1.5));
 
-  if (setlocale(LC_NUMERIC, "es_ES") == NULL &&
-      setlocale(LC_NUMERIC, "es_ES.utf8") == NULL) {
+  if (setlocale(LC_NUMERIC, "es_ES") == nullptr &&
+      setlocale(LC_NUMERIC, "es_ES.utf8") == nullptr) {
     // Some systems may not have the desired locale available.
     GOOGLE_LOG(WARNING)
       << "Couldn't set locale to es_ES.  Skipping this test.";
@@ -782,7 +782,7 @@ TEST(Base64, EscapeAndUnescape) {
       reinterpret_cast<const unsigned char*>(base64_strings[i].plaintext);
     int plain_length = strlen(base64_strings[i].plaintext);
     int cypher_length = strlen(base64_strings[i].cyphertext);
-    vector<char> buffer(cypher_length+1);
+    std::vector<char> buffer(cypher_length+1);
     int encode_length = WebSafeBase64Escape(unsigned_plaintext,
                                                      plain_length,
                                                      &buffer[0],

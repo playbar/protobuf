@@ -141,6 +141,7 @@ void ImmutableExtensionGenerator::Generate(io::Printer* printer) {
         "      $singular_type$.class,\n"
         "      $prototype$);\n");
   }
+  printer->Annotate("name", descriptor_);
 }
 
 int ImmutableExtensionGenerator::GenerateNonNestedInitializationCode(
@@ -150,8 +151,8 @@ int ImmutableExtensionGenerator::GenerateNonNestedInitializationCode(
     // Only applies to non-nested extensions.
     printer->Print(
         "$name$.internalInit(descriptor.getExtensions().get($index$));\n",
-        "name", UnderscoresToCamelCase(descriptor_),
-        "index", SimpleItoa(descriptor_->index()));
+        "name", UnderscoresToCamelCase(descriptor_), "index",
+        SimpleItoa(descriptor_->index()));
     bytecode_estimate += 21;
   }
   return bytecode_estimate;

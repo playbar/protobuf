@@ -206,6 +206,7 @@ EXTRA_DIST =                  \
 
 conformance_test_runner_LDADD = $(top_srcdir)/src/libprotobuf.la
 conformance_test_runner_SOURCES = conformance_test.h conformance_test.cc \
+                                  conformance_test_impl.cc               \
                                   conformance_test_runner.cc             \
                                   third_party/jsoncpp/json.h             \
                                   third_party/jsoncpp/jsoncpp.cpp
@@ -278,8 +279,6 @@ endif
 $(protoc_outputs): protoc_middleman
 
 $(other_language_protoc_outputs): protoc_middleman
-
-BUILT_SOURCES = $(protoc_outputs) $(other_language_protoc_outputs)
 
 CLEANFILES = $(protoc_outputs) protoc_middleman javac_middleman conformance-java javac_middleman_lite conformance-java-lite conformance-csharp conformance-php conformance-php-c $(other_language_protoc_outputs)
 

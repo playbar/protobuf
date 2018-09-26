@@ -240,21 +240,18 @@ final class FieldMaskTree {
               "Field \""
                   + field.getFullName()
                   + "\" is not a "
-                  + "singluar message field and cannot have sub-fields.");
+                  + "singular message field and cannot have sub-fields.");
           continue;
         }
         if (!source.hasField(field) && !destination.hasField(field)) {
           // If the message field is not present in both source and destination, skip recursing
-          // so we don't create unneccessary empty messages.
+          // so we don't create unnecessary empty messages.
           continue;
         }
         String childPath = path.isEmpty() ? entry.getKey() : path + "." + entry.getKey();
-        merge(
-            entry.getValue(),
-            childPath,
-            (Message) source.getField(field),
-            destination.getFieldBuilder(field),
-            options);
+        Message.Builder childBuilder = ((Message) destination.getField(field)).toBuilder();
+        merge(entry.getValue(), childPath, (Message) source.getField(field), childBuilder, options);
+        destination.setField(field, childBuilder.buildPartial());
         continue;
       }
       if (field.isRepeated()) {
@@ -275,7 +272,12 @@ final class FieldMaskTree {
             }
           } else {
             if (source.hasField(field)) {
-              destination.getFieldBuilder(field).mergeFrom((Message) source.getField(field));
+              destination.setField(
+                  field,
+                  ((Message) destination.getField(field))
+                      .toBuilder()
+                      .mergeFrom((Message) source.getField(field))
+                      .build());
             }
           }
         } else {

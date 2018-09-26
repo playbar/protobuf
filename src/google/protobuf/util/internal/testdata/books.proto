@@ -65,8 +65,12 @@ message Book {
     KIDS = 2;
     ACTION_AND_ADVENTURE = 3;
     arts_and_photography = 4;
+    I18N_Tech = 5;
   }
   optional Type type = 11;
+
+  // Useful for testing JSON snake/camel-case conversions.
+  optional string snake_field = 12;
 
   extensions 200 to 499;
 }
@@ -192,7 +196,7 @@ message Cyclic {
 }
 
 // Test that two messages can have different fields mapped to the same JSON
-// name. See: https://github.com/google/protobuf/issues/1415
+// name. See: https://github.com/protocolbuffers/protobuf/issues/1415
 message TestJsonName1 {
   optional int32 one_value = 1 [json_name = "value"];
 }

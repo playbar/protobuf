@@ -93,7 +93,7 @@ namespace Google.Protobuf.WellKnownTypes {
       methods_ = other.methods_.Clone();
       options_ = other.options_.Clone();
       version_ = other.version_;
-      SourceContext = other.sourceContext_ != null ? other.SourceContext.Clone() : null;
+      sourceContext_ = other.sourceContext_ != null ? other.sourceContext_.Clone() : null;
       mixins_ = other.mixins_.Clone();
       syntax_ = other.syntax_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -328,7 +328,7 @@ namespace Google.Protobuf.WellKnownTypes {
       }
       if (other.sourceContext_ != null) {
         if (sourceContext_ == null) {
-          sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+          SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
         }
         SourceContext.MergeFrom(other.SourceContext);
       }
@@ -365,9 +365,9 @@ namespace Google.Protobuf.WellKnownTypes {
           }
           case 42: {
             if (sourceContext_ == null) {
-              sourceContext_ = new global::Google.Protobuf.WellKnownTypes.SourceContext();
+              SourceContext = new global::Google.Protobuf.WellKnownTypes.SourceContext();
             }
-            input.ReadMessage(sourceContext_);
+            input.ReadMessage(SourceContext);
             break;
           }
           case 50: {
@@ -375,7 +375,7 @@ namespace Google.Protobuf.WellKnownTypes {
             break;
           }
           case 56: {
-            syntax_ = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
+            Syntax = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
             break;
           }
         }
@@ -688,7 +688,7 @@ namespace Google.Protobuf.WellKnownTypes {
             break;
           }
           case 56: {
-            syntax_ = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
+            Syntax = (global::Google.Protobuf.WellKnownTypes.Syntax) input.ReadEnum();
             break;
           }
         }

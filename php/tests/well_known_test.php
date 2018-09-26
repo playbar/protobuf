@@ -14,8 +14,8 @@ use Google\Protobuf\Enum;
 use Google\Protobuf\EnumValue;
 use Google\Protobuf\Field;
 use Google\Protobuf\FieldMask;
-use Google\Protobuf\Field_Cardinality;
-use Google\Protobuf\Field_Kind;
+use Google\Protobuf\Field\Cardinality;
+use Google\Protobuf\Field\Kind;
 use Google\Protobuf\FloatValue;
 use Google\Protobuf\GPBEmpty;
 use Google\Protobuf\Int32Value;
@@ -42,6 +42,7 @@ class WellKnownTest extends TestBase {
     public function testEmpty()
     {
         $msg = new GPBEmpty();
+        $this->assertTrue($msg instanceof \Google\Protobuf\Internal\Message);
     }
 
     public function testImportDescriptorProto()
@@ -206,11 +207,11 @@ class WellKnownTest extends TestBase {
     {
         $m = new Field();
 
-        $m->setKind(Field_Kind::TYPE_DOUBLE);
-        $this->assertSame(Field_Kind::TYPE_DOUBLE, $m->getKind());
+        $m->setKind(Kind::TYPE_DOUBLE);
+        $this->assertSame(Kind::TYPE_DOUBLE, $m->getKind());
 
-        $m->setCardinality(Field_Cardinality::CARDINALITY_OPTIONAL);
-        $this->assertSame(Field_Cardinality::CARDINALITY_OPTIONAL, $m->getCardinality());
+        $m->setCardinality(Cardinality::CARDINALITY_OPTIONAL);
+        $this->assertSame(Cardinality::CARDINALITY_OPTIONAL, $m->getCardinality());
 
         $m->setNumber(1);
         $this->assertSame(1, $m->getNumber());
@@ -312,11 +313,12 @@ class WellKnownTest extends TestBase {
         $from = new DateTime('2011-01-01T15:03:01.012345UTC');
         $timestamp->fromDateTime($from);
         $this->assertEquals($from->format('U'), $timestamp->getSeconds());
-        $this->assertSame(0, $timestamp->getNanos());
+        $this->assertEquals(1000 * $from->format('u'), $timestamp->getNanos());
 
         $to = $timestamp->toDateTime();
         $this->assertSame(\DateTime::class, get_class($to));
         $this->assertSame($from->format('U'), $to->format('U'));
+        $this->assertSame($from->format('u'), $to->format('u'));
     }
 
     public function testType()

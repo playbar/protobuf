@@ -3,7 +3,9 @@
 
 This directory contains benchmarking schemas and data sets that you
 can use to test a variety of performance scenarios against your
-protobuf language runtime.
+protobuf language runtime. If you are looking for performance 
+numbers of officially support languages, see [here](
+https://github.com/protocolbuffers/protobuf/blob/master/docs/performance.md)
 
 ## Prerequisite
 
@@ -16,6 +18,11 @@ You need to install [cmake](https://cmake.org/) before building the benchmark.
 We are using [google/benchmark](https://github.com/google/benchmark) as the
 benchmark tool for testing cpp. This will be automaticly made during build the
 cpp benchmark.
+
+The cpp protobuf performance can be improved by linking with [tcmalloc library](
+https://gperftools.github.io/gperftools/tcmalloc.html). For using tcmalloc, you
+need to build [gpertools](https://github.com/gperftools/gperftools) to generate
+libtcmallc.so library.
 
 ### Java
 We're using maven to build the java benchmarks, which is the same as to build
@@ -35,6 +42,28 @@ $ sudo apt-get install python-dev
 $ sudo apt-get install python3-dev
 ```
 And you also need to make sure `pkg-config` is installed.
+
+### Go
+Go protobufs are maintained at [github.com/golang/protobuf](
+http://github.com/golang/protobuf). If not done already, you need to install the 
+toolchain and the Go protoc-gen-go plugin for protoc. 
+
+To install protoc-gen-go, run:
+
+```
+$ go get -u github.com/golang/protobuf/protoc-gen-go
+$ export PATH=$PATH:$(go env GOPATH)/bin
+```
+
+The first command installs `protoc-gen-go` into the `bin` directory in your local `GOPATH`.
+The second command adds the `bin` directory to your `PATH` so that `protoc` can locate the plugin later.
+
+### PHP
+PHP benchmark's requirement is the same as PHP protobuf's requirements. The benchmark will automaticly 
+include PHP protobuf's src and build the c extension if required.
+
+### Node.js
+Node.js benchmark need [node](https://nodejs.org/en/)(higher than V6) and [npm](https://www.npmjs.com/) package manager installed. This benchmark is using the [benchmark](https://www.npmjs.com/package/benchmark) framework to test, which needn't to manually install. And another prerequisite is [protobuf js](https://github.com/protocolbuffers/protobuf/tree/master/js), which needn't to manually install either
 
 ### Big data
 
@@ -64,6 +93,12 @@ $ make java
 $ make cpp
 ```
 
+For linking with tcmalloc:
+
+```
+$ env LD_PRELOAD={directory to libtcmalloc.so} make cpp
+```
+
 ### Python:
 
 We have three versions of python protobuf implementation: pure python, cpp
@@ -87,43 +122,91 @@ $ make python-cpp-reflection
 $ make python-cpp-generated-code
 ```
 
-To run a specific dataset:
+### Go
+```
+$ make go
+```
+
+
+### PHP
+We have two version of php protobuf implemention: pure php, php with c extension. To run these version benchmark, you need to:
+#### Pure PHP
+```
+$ make php
+```
+#### PHP with c extension
+```
+$ make php_c
+```
+
+### Node.js
+```
+$ make js
+```
+
+To run a specific dataset or run with specific options:
 
 ### Java:
 
 ```
 $ make java-benchmark
-$ ./java-benchmark $(specific generated dataset file name) [-- $(caliper option)]
+$ ./java-benchmark $(specific generated dataset file name) [$(caliper options)]
 ```
 
 ### CPP:
 
 ```
 $ make cpp-benchmark
-$ ./cpp-benchmark $(specific generated dataset file name)
+$ ./cpp-benchmark $(specific generated dataset file name) [$(benchmark options)]
 ```
 
 ### Python:
+
+For Python benchmark we have `--json` for outputing the json result
 
 #### Pure Python:
 
 ```
 $ make python-pure-python-benchmark
-$ ./python-pure-python-benchmark $(specific generated dataset file name)
+$ ./python-pure-python-benchmark [--json] $(specific generated dataset file name)
 ```
 
 #### CPP reflection:
 
 ```
 $ make python-cpp-reflection-benchmark
-$ ./python-cpp-reflection-benchmark $(specific generated dataset file name)
+$ ./python-cpp-reflection-benchmark [--json] $(specific generated dataset file name)
 ```
 
 #### CPP generated code:
 
 ```
 $ make python-cpp-generated-code-benchmark
-$ ./python-cpp-generated-code-benchmark $(specific generated dataset file name)
+$ ./python-cpp-generated-code-benchmark [--json] $(specific generated dataset file name)
+```
+
+### Go:
+```
+$ make go-benchmark
+$ ./go-benchmark $(specific generated dataset file name) [go testing options]
+```
+
+### PHP
+#### Pure PHP
+```
+$ make php-benchmark
+$ ./php-benchmark $(specific generated dataset file name)
+```
+#### PHP with c extension
+```
+$ make php-c-benchmark
+$ ./php-c-benchmark $(specific generated dataset file name)
+```
+
+### Node.js
+```
+$ make js-benchmark
+$ ./js-benchmark $(specific generated dataset file name)
 ```
 
 ## Benchmark datasets

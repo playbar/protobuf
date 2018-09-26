@@ -32,13 +32,15 @@
 #define GOOGLE_PROTOBUF_MAP_FIELD_INL_H__
 
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
 
+#include <google/protobuf/stubs/casts.h>
 #include <google/protobuf/map.h>
 #include <google/protobuf/map_field.h>
 #include <google/protobuf/map_type_handler.h>
+
+#ifdef SWIG
+#error "You cannot SWIG proto headers"
+#endif
 
 namespace google {
 namespace protobuf {
@@ -67,7 +69,7 @@ inline bool UnwrapMapKey<bool>(const MapKey& map_key) {
   return map_key.GetBoolValue();
 }
 template<>
-inline string UnwrapMapKey<string>(const MapKey& map_key) {
+inline std::string UnwrapMapKey<std::string>(const MapKey& map_key) {
   return map_key.GetStringValue();
 }
 
@@ -95,7 +97,7 @@ inline void SetMapKey<bool>(MapKey* map_key, const bool& value) {
   map_key->SetBoolValue(value);
 }
 template<>
-inline void SetMapKey<string>(MapKey* map_key, const string& value) {
+inline void SetMapKey<std::string>(MapKey* map_key, const std::string& value) {
   map_key->SetStringValue(value);
 }
 
@@ -251,10 +253,15 @@ template <typename Derived, typename Key, typename T,
           WireFormatLite::FieldType kKeyFieldType,
           WireFormatLite::FieldType kValueFieldType, int default_enum_value>
 void MapField<Derived, Key, T, kKeyFieldType, kValueFieldType,
-              default_enum_value>::Swap(MapField* other) {
-  std::swap(this->MapFieldBase::repeated_field_, other->repeated_field_);
-  impl_.Swap(&other->impl_);
-  std::swap(this->MapFieldBase::state_, other->state_);
+              default_enum_value>::Swap(MapFieldBase* other) {
+  MapField* other_field = down_cast<MapField*>(other);
+  std::swap(this->MapFieldBase::repeated_field_, other_field->repeated_field_);
+  impl_.Swap(&other_field->impl_);
+  // a relaxed swap of the atomic
+  auto other_state = other_field->state_.load(std::memory_order_relaxed);
+  auto this_state = this->MapFieldBase::state_.load(std::memory_order_relaxed);
+  other_field->state_.store(this_state, std::memory_order_relaxed);
+  this->MapFieldBase::state_.store(other_state, std::memory_order_relaxed);
 }
 
 template <typename Derived, typename Key, typename T,
@@ -336,6 +343,6 @@ size_t MapField<Derived, Key, T, kKeyFieldType, kValueFieldType,
 }
 }  // namespace internal
 }  // namespace protobuf
-
 }  // namespace google
+
 #endif  // GOOGLE_PROTOBUF_MAP_FIELD_INL_H__

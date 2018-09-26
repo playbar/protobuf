@@ -63,19 +63,16 @@
 // I don't have the book on me right now so I'm not sure.
 
 #include <algorithm>
-#include <google/protobuf/stubs/hash.h>
 #include <memory>
-#ifndef _SHARED_PTR_H
-#include <google/protobuf/stubs/shared_ptr.h>
-#endif
+#include <unordered_map>
 
-#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/hash.h>
 
-#include <google/protobuf/dynamic_message.h>
-#include <google/protobuf/descriptor.h>
 #include <google/protobuf/descriptor.pb.h>
-#include <google/protobuf/generated_message_util.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/generated_message_util.h>
 #include <google/protobuf/arenastring.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/map_field.h>
@@ -232,13 +229,13 @@ class DynamicMessage : public Message {
 
     // Warning:  The order in which the following pointers are defined is
     //   important (the prototype must be deleted *before* the offsets).
-    google::protobuf::scoped_array<uint32> offsets;
-    google::protobuf::scoped_array<uint32> has_bits_indices;
-    google::protobuf::scoped_ptr<const GeneratedMessageReflection> reflection;
-    // Don't use a scoped_ptr to hold the prototype: the destructor for
+    std::unique_ptr<uint32[]> offsets;
+    std::unique_ptr<uint32[]> has_bits_indices;
+    std::unique_ptr<const GeneratedMessageReflection> reflection;
+    // Don't use a unique_ptr to hold the prototype: the destructor for
     // DynamicMessage needs to know whether it is the prototype, and does so by
     // looking back at this field. This would assume details about the
-    // implementation of scoped_ptr.
+    // implementation of unique_ptr.
     const DynamicMessage* prototype;
     int weak_field_map_offset;  // The offset for the weak_field_map;
 
@@ -261,14 +258,14 @@ class DynamicMessage : public Message {
 
   // implements Message ----------------------------------------------
 
-  Message* New() const;
-  Message* New(::google::protobuf::Arena* arena) const;
-  ::google::protobuf::Arena* GetArena() const { return arena_; }
+  Message* New() const override;
+  Message* New(Arena* arena) const override;
+  Arena* GetArena() const override { return arena_; }
 
-  int GetCachedSize() const;
-  void SetCachedSize(int size) const;
+  int GetCachedSize() const override;
+  void SetCachedSize(int size) const override;
 
-  Metadata GetMetadata() const;
+  Metadata GetMetadata() const override;
 
   // We actually allocate more memory than sizeof(*this) when this
   // class's memory is allocated via the global operator new. Thus, we need to
@@ -282,7 +279,7 @@ class DynamicMessage : public Message {
 #endif  // !_MSC_VER
 
  private:
-  DynamicMessage(const TypeInfo* type_info, ::google::protobuf::Arena* arena);
+  DynamicMessage(const TypeInfo* type_info, Arena* arena);
 
   void SharedCtor(bool lock_factory);
 
@@ -302,8 +299,7 @@ class DynamicMessage : public Message {
 
   const TypeInfo* type_info_;
   Arena* const arena_;
-  // TODO(kenton):  Make this an atomic<int> when C++ supports it.
-  mutable int cached_byte_size_;
+  mutable std::atomic<int> cached_byte_size_;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(DynamicMessage);
 };
 
@@ -312,8 +308,7 @@ DynamicMessage::DynamicMessage(const TypeInfo* type_info)
   SharedCtor(true);
 }
 
-DynamicMessage::DynamicMessage(const TypeInfo* type_info,
-                               ::google::protobuf::Arena* arena)
+DynamicMessage::DynamicMessage(const TypeInfo* type_info, Arena* arena)
     : type_info_(type_info), arena_(arena), cached_byte_size_(0) {
   SharedCtor(true);
 }
@@ -582,7 +577,7 @@ void DynamicMessage::CrossLinkPrototypes() {
 
 Message* DynamicMessage::New() const { return New(NULL); }
 
-Message* DynamicMessage::New(::google::protobuf::Arena* arena) const {
+Message* DynamicMessage::New(Arena* arena) const {
   if (arena != NULL) {
     void* new_base = Arena::CreateArray<char>(arena, type_info_->size);
     memset(new_base, 0, type_info_->size);
@@ -595,16 +590,11 @@ Message* DynamicMessage::New(::google::protobuf::Arena* arena) const {
 }
 
 int DynamicMessage::GetCachedSize() const {
-  return cached_byte_size_;
+  return cached_byte_size_.load(std::memory_order_relaxed);
 }
 
 void DynamicMessage::SetCachedSize(int size) const {
-  // This is theoretically not thread-compatible, but in practice it works
-  // because if multiple threads write this simultaneously, they will be
-  // writing the exact same value.
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  cached_byte_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  cached_byte_size_.store(size, std::memory_order_relaxed);
 }
 
 Metadata DynamicMessage::GetMetadata() const {
@@ -617,7 +607,8 @@ Metadata DynamicMessage::GetMetadata() const {
 // ===================================================================
 
 struct DynamicMessageFactory::PrototypeMap {
-  typedef hash_map<const Descriptor*, const DynamicMessage::TypeInfo*> Map;
+  typedef std::unordered_map<const Descriptor*, const DynamicMessage::TypeInfo*>
+      Map;
   Map map_;
 };
 
