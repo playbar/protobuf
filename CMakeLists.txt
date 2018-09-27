@@ -5,7 +5,13 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fpermissive -fvisibility=hidden -Wal
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_definitions(-DNDEBUG)
+#Debug Release RelWithDebInfo >和 MinSizeRel。
+#set(CMAKE_BUILD_TYPE "Release")
+
+SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -O0 -Wall -g -ggdb")
+SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -O3 -Wall")
+
+#add_definitions(-DNDEBUG)
 
 add_subdirectory(cmake)
 #add_subdirectory(examples)
