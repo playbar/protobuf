@@ -23,16 +23,16 @@ void ListPeople(const tutorial::AddressBook& address_book) {
     }
 
     for (int j = 0; j < person.phones_size(); j++) {
-      const tutorial::Person::PhoneNumber& phone_number = person.phones(j);
+      const tutorial::PhoneNumber& phone_number = person.phones(j);
 
       switch (phone_number.type()) {
-        case tutorial::Person::MOBILE:
+        case tutorial::MOBILE:
           cout << "  Mobile phone #: ";
           break;
-        case tutorial::Person::HOME:
+        case tutorial::HOME:
           cout << "  Home phone #: ";
           break;
-        case tutorial::Person::WORK:
+        case tutorial::WORK:
           cout << "  Work phone #: ";
           break;
         default:

@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD 14)
 add_definitions(-DNDEBUG)
 
 add_subdirectory(cmake)
-add_subdirectory(examples)
+#add_subdirectory(examples)
 add_subdirectory(mytest)
 
 
